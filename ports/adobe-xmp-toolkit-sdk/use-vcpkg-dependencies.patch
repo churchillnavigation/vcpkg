@@ -63,7 +63,7 @@ diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeListsCommon.txt XMP-Toolkit-S
  SetOutputPath(${OUTPUT_DIR} 0)
 diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeLists.txt XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeLists.txt
 --- XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeLists.txt	2023-07-06 14:24:35.000000000 +0000
-+++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeLists.txt	2026-02-20 17:22:52.618516247 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeLists.txt	2026-02-20 17:24:48.267490629 +0000
 @@ -47,8 +47,9 @@
  include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/build/XMP_Config.cmake)
  
