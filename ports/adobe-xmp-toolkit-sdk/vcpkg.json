@@ -1,0 +1,19 @@
+{
+  "name": "adobe-xmp-toolkit-sdk",
+  "version": "2023.07",
+  "description": "The XMP Toolkit allows you to integrate XMP functionality into your product or solution. It supports parsing, manipulating, and serializing metadata.",
+  "homepage": "https://github.com/adobe/XMP-Toolkit-SDK",
+  "license": "BSD-3-Clause",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    },
+    "expat",
+    "zlib"
+  ]
+}

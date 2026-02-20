@@ -1,0 +1,167 @@
+diff --git a/XMPCore/build/CMakeLists.txt b/XMPCore/build/CMakeLists.txt
+index 1111111..2222222 100644
+--- a/XMPCore/build/CMakeLists.txt
++++ b/XMPCore/build/CMakeLists.txt
+@@ -54,8 +54,8 @@ else()
+ 	add_definitions(-DBUILDING_XMPCORE_AS_DYNAMIC=1)
+ endif()
+ 
++# Use vcpkg dependencies
++find_package(EXPAT REQUIRED CONFIG)
+ set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
+-set(TP_EXPAT_PATH "${PROJECT_ROOT}/../../third-party/expat/lib/")
+ 
+ # ==============================================================================
+ # Project specific config starts here
+@@ -235,6 +235,13 @@ set_target_properties(${TARGET_NAME} PROPERTIES OUTPUT_NAME  ${XMPCORE_LIB})
+ # Link dependencies
+ set(FRAMEWORK_LIST "ALL:CoreFoundation" "Mac:CoreServices")
+ AddMacFramework(${TARGET_NAME} FRAMEWORK_LIST)
++# Link with expat from vcpkg
++target_link_libraries(${TARGET_NAME} PRIVATE EXPAT::EXPAT)
++
++# Install targets
++install(TARGETS ${TARGET_NAME}
++    LIBRARY DESTINATION lib
++    ARCHIVE DESTINATION lib
++    RUNTIME DESTINATION bin)
+ if(WIN32)
+ 	SetWinLinkFlags(${TARGET_NAME} "rpcrt4.lib ole32.lib" "${XMPCORE_LIB}")
+ else(WIN32)
+diff --git a/XMPCore/build/CMakeListsCommon.txt b/XMPCore/build/CMakeListsCommon.txt
+index 3333333..4444444 100644
+--- a/XMPCore/build/CMakeListsCommon.txt
++++ b/XMPCore/build/CMakeListsCommon.txt
+@@ -87,12 +87,8 @@ file (GLOB CORECLASS_SOURCE_FILES ${SOURCE_ROOT}/XMP*.cpp)
+ list (REMOVE_ITEM CORECLASS_SOURCE_FILES ${SOURCE_ROOT}/XMPCore_Impl.cpp)
+ source_group("Source Files\\Core Classes" FILES ${CORECLASS_SOURCE_FILES})
+ 
++# Keep zuid, remove expat sources (use vcpkg)
+ file (GLOB ZUID_SOURCE_FILES ${TP_ZUID_PATH}/*.cpp)
+-list (APPEND THIRDPARTY_SOURCE_FILES
+-	${TP_EXPAT_PATH}/xmlparse.c
+-	${TP_EXPAT_PATH}/xmlrole.c
+-	${TP_EXPAT_PATH}/xmltok.c
+-	${ZUID_SOURCE_FILES}
+-	)
++list (APPEND THIRDPARTY_SOURCE_FILES ${ZUID_SOURCE_FILES})
+ if(WIN32)
+ 	list (APPEND THIRDPARTY_SOURCE_FILES ${RESOURCE_ROOT}/win/expat_config.h)
+ else()
+@@ -156,7 +152,6 @@ endif()
+ # include directories
+ include_directories(${XMPROOT_DIR})
+ include_directories(${XMPROOT_DIR}/public/include)
+-include_directories(${XMPROOT_DIR}/third-party/expat/public/lib)
+ include_directories(${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT})
+ if(UNIX AND NOT APPLE AND NOT ${XMP_BUILD_STATIC})
+ include_directories(${XMPROOT_DIR}/XMPCore/third-party/boost)
+diff --git a/XMPFiles/build/CMakeLists.txt b/XMPFiles/build/CMakeLists.txt
+index 5555555..6666666 100644
+--- a/XMPFiles/build/CMakeLists.txt
++++ b/XMPFiles/build/CMakeLists.txt
+@@ -47,8 +47,9 @@ set(XMP_THIS_PROJECT_RELATIVEPATH "../..")
+ include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/build/XMP_Config.cmake)
+ 
+ 
++# Use vcpkg dependencies
++find_package(ZLIB REQUIRED CONFIG)
+ set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
+-set(TP_EXPAT_PATH "${PROJECT_ROOT}/../../third-party/expat/lib/")
+ set(LIB_ADOBEXMP XMPCore)
+ 
+ if(ANDROID)
+@@ -294,8 +295,18 @@ if (UNIX)
+ 		list (REMOVE_ITEM LINKAGE_LIST "DLL:${LIB_ADOBEXMP}")
+ 	endif()
+ 	target_link_libraries(${TARGET_NAME} ${LINKAGE_LIST})
++	# Link with zlib from vcpkg
++	target_link_libraries(${TARGET_NAME} PRIVATE ZLIB::ZLIB)
+ else ()
+ 	SetWinLinkFlags(${TARGET_NAME} "ws2_32.lib" "${XMPFILES_LIB}")
+-endif ()
+\ No newline at end of file
++	# Link with zlib from vcpkg
++	target_link_libraries(${TARGET_NAME} PRIVATE ZLIB::ZLIB)
++endif ()
++
++# Install targets
++install(TARGETS ${TARGET_NAME}
++    LIBRARY DESTINATION lib
++    ARCHIVE DESTINATION lib
++    RUNTIME DESTINATION bin)
++
+diff --git a/XMPFiles/build/CMakeListsCommon.txt b/XMPFiles/build/CMakeListsCommon.txt
+index 7777777..8888888 100644
+--- a/XMPFiles/build/CMakeListsCommon.txt
++++ b/XMPFiles/build/CMakeListsCommon.txt
+@@ -65,16 +65,6 @@ list (APPEND PUBLIC_HEADER
+ 	)
+ source_group("Header Files\\Public Headers" FILES ${PUBLIC_HEADER})
+ 
+-file (GLOB HEADERFILES_THIRDPARTY_ZLIB ${XMPROOT_DIR}/third-party/zlib/*.h)
+-list (REMOVE_ITEM HEADERFILES_THIRDPARTY_ZLIB
+-	${CMAKE_CURRENT_SOURCE_DIR}/${XMPROOT_DIR}/third-party/zlib/gzguts.h
+-	)
+-source_group("Header Files\\ThirdParty\\zlib" FILES ${HEADERFILES_THIRDPARTY_ZLIB})
+-
+-list (APPEND FILES_THIRDPARTY_EXPAT
+-	${TP_EXPAT_PATH}/xmlparse.c
+-	${TP_EXPAT_PATH}/xmlrole.c
+-	${TP_EXPAT_PATH}/xmltok.c
+-	)
+-list (APPEND FILES_THIRDPARTY_EXPAT ${RESOURCE_ROOT}/../../XMPCore/resource/${XMP_PLATFORM_SHORT}/expat_config.h)
+-source_group("Source Files\\ThirdParty\\expat" FILES ${FILES_THIRDPARTY_EXPAT})
+-
+ list (APPEND HEADERFILES
+ 	${XMPROOT_DIR}/source/Host_IO.hpp
+ 	${XMPROOT_DIR}/source/XIO.hpp
+@@ -173,17 +163,6 @@ else ()
+ endif()
+ source_group("Source Files\\PluginHandler" FILES ${SOURCEFILES_PLUGINHANDLER})
+ 
+-list (APPEND SOURCEFILES_THIRDPARTY_ZLIB
+-	${XMPROOT_DIR}/third-party/zlib/adler32.c
+-	${XMPROOT_DIR}/third-party/zlib/compress.c
+-	${XMPROOT_DIR}/third-party/zlib/crc32.c
+-	${XMPROOT_DIR}/third-party/zlib/deflate.c
+-	${XMPROOT_DIR}/third-party/zlib/infback.c
+-	${XMPROOT_DIR}/third-party/zlib/inffast.c
+-	${XMPROOT_DIR}/third-party/zlib/inflate.c
+-	${XMPROOT_DIR}/third-party/zlib/inftrees.c
+-	${XMPROOT_DIR}/third-party/zlib/trees.c
+-	${XMPROOT_DIR}/third-party/zlib/uncompr.c
+-	${XMPROOT_DIR}/third-party/zlib/zutil.c
+-	)
+-source_group("Source Files\\ThirdParty\\zlib" FILES ${HEADERFILES_THIRDPARTY_ZLIB})
+-
+ list(APPEND SOURCE_FILES
+ 	${INTERNAL_HEADER_COMMONCODE_NMDS}
+ 	${INTERNAL_HEADER_COMMONCODE}
+@@ -195,7 +174,6 @@ list(APPEND SOURCE_FILES
+ 	${INTERNAL_HEADER_PLUGINHANDLER}
+ 	${PUBLIC_HEADER_CLIENTGLUE}
+ 	${PUBLIC_HEADER}
+-	${HEADERFILES_THIRDPARTY_ZLIB}
+ 	${HEADERFILES}
+ 	${RESOURCE_FILES}
+ 	${SOURCEFILES_COMMONCODE_NMDS}
+@@ -209,9 +187,6 @@ list(APPEND SOURCE_FILES
+ 	${SOURCEFILES_PLUGINHANDLER}
+ 	${PUBLIC_XMPCOMMON_CLIENTGLUE_FILES}
+ 	${PUBLIC_XMPCORE_CLIENTGLUE_FILES}
+-	${HEADERFILES_THIRDPARTY_ZLIB}
+-	${FILES_THIRDPARTY_EXPAT}
+-	${SOURCEFILES_THIRDPARTY_ZLIB}
+ 	)
+ 
+ # include directories
+@@ -219,8 +194,6 @@ include_directories(${XMPROOT_DIR})
+ include_directories(${XMPROOT_DIR}/public/include)
+ include_directories(${XMPROOT_DIR}/public/include/client-glue)
+ 
+-include_directories(${TP_EXPAT_PATH})
+-include_directories(${XMPROOT_DIR}/third-party/expat/public/lib)
+ include_directories(${XMPROOT_DIR}/XMPFilesPlugins/api/source)
+ include_directories(${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT})
+ 
