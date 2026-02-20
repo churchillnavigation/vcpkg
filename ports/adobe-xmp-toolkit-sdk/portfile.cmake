@@ -22,8 +22,62 @@ vcpkg_cmake_configure(
         ${BUILD_STATIC_OPTION}
 )
 
-# Build and install
-vcpkg_cmake_install()
+# Build (but don't use vcpkg_cmake_install as SDK has custom output structure)
+vcpkg_cmake_build()
+
+# Manually install libraries - SDK outputs to public/libraries/<platform>/<config>/
+# The SDK uses custom naming: staticXMPCore.ar and staticXMPFiles.ar for static builds
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+    # Static libraries
+    if(VCPKG_TARGET_IS_LINUX)
+        set(LIB_DIR "i80386linux")
+        set(XMPCORE_LIB "staticXMPCore.ar")
+        set(XMPFILES_LIB "staticXMPFiles.ar")
+    elseif(VCPKG_TARGET_IS_OSX)
+        set(LIB_DIR "macintosh")
+        set(XMPCORE_LIB "libXMPCoreStatic.a")
+        set(XMPFILES_LIB "libXMPFilesStatic.a")
+    elseif(VCPKG_TARGET_IS_WINDOWS)
+        set(LIB_DIR "windows")
+        set(XMPCORE_LIB "XMPCoreStatic.lib")
+        set(XMPFILES_LIB "XMPFilesStatic.lib")
+    endif()
+else()
+    # Dynamic libraries
+    if(VCPKG_TARGET_IS_LINUX)
+        set(LIB_DIR "i80386linux")
+        set(XMPCORE_LIB "libXMPCore.so")
+        set(XMPFILES_LIB "libXMPFiles.so")
+    elseif(VCPKG_TARGET_IS_OSX)
+        set(LIB_DIR "macintosh")
+        set(XMPCORE_LIB "libXMPCore.dylib")
+        set(XMPFILES_LIB "libXMPFiles.dylib")
+    elseif(VCPKG_TARGET_IS_WINDOWS)
+        set(LIB_DIR "windows")
+        set(XMPCORE_LIB "XMPCore.dll")
+        set(XMPFILES_LIB "XMPFiles.dll")
+    endif()
+endif()
+
+# Install release libraries
+if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
+    file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPCORE_LIB}"
+         DESTINATION "${CURRENT_PACKAGES_DIR}/lib"
+         RENAME "libXMPCore.a")
+    file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPFILES_LIB}"
+         DESTINATION "${CURRENT_PACKAGES_DIR}/lib"
+         RENAME "libXMPFiles.a")
+endif()
+
+# Install debug libraries
+if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
+    file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPCORE_LIB}"
+         DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib"
+         RENAME "libXMPCore.a")
+    file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPFILES_LIB}"
+         DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib"
+         RENAME "libXMPFiles.a")
+endif()
 
 # Install headers
 file(INSTALL "${SOURCE_PATH}/public/include/" 
@@ -33,10 +87,19 @@ file(INSTALL "${SOURCE_PATH}/public/include/"
      PATTERN "*.hpp"
      PATTERN "*.incl_cpp")
 
+# Remove empty source directories from headers
+file(REMOVE_RECURSE 
+    "${CURRENT_PACKAGES_DIR}/include/XMPCommon/source"
+    "${CURRENT_PACKAGES_DIR}/include/XMPCore/source")
+
 # Remove duplicate headers from debug
 if(EXISTS "${CURRENT_PACKAGES_DIR}/debug/include")
     file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 endif()
+
+# Install usage
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" 
+     DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
 
 # Handle copyright
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

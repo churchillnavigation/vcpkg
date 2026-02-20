@@ -1,12 +1,12 @@
 diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeLists.txt XMP-Toolkit-SDK-patched/XMPCore/build/CMakeLists.txt
 --- XMP-Toolkit-SDK-orig/XMPCore/build/CMakeLists.txt	2025-03-28 09:49:20.000000000 +0000
-+++ XMP-Toolkit-SDK-patched/XMPCore/build/CMakeLists.txt	2026-02-20 17:57:43.332244501 +0000
++++ XMP-Toolkit-SDK-patched/XMPCore/build/CMakeLists.txt	2026-02-20 18:10:35.906676828 +0000
 @@ -53,8 +53,9 @@
  	add_definitions(-DBUILDING_XMPCORE_AS_DYNAMIC=1)
  endif()
  
 +# Use vcpkg dependencies
-+find_package(EXPAT REQUIRED CONFIG)
++find_package(EXPAT REQUIRED)
  set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
 -set(TP_EXPAT_PATH "${PROJECT_ROOT}/../../third-party/expat/lib/")
  
@@ -14,7 +14,7 @@ diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeLists.txt XMP-Toolkit-SDK-pat
  # Project specific config starts here
 diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeListsCommon.txt XMP-Toolkit-SDK-patched/XMPCore/build/CMakeListsCommon.txt
 --- XMP-Toolkit-SDK-orig/XMPCore/build/CMakeListsCommon.txt	2025-03-28 09:49:20.000000000 +0000
-+++ XMP-Toolkit-SDK-patched/XMPCore/build/CMakeListsCommon.txt	2026-02-20 17:58:06.320231705 +0000
++++ XMP-Toolkit-SDK-patched/XMPCore/build/CMakeListsCommon.txt	2026-02-20 18:11:02.119808619 +0000
 @@ -87,13 +87,9 @@
  list (REMOVE_ITEM CORECLASS_SOURCE_FILES ${SOURCE_ROOT}/XMPCore_Impl.cpp)
  source_group("Source Files\\Core Classes" FILES ${CORECLASS_SOURCE_FILES})
@@ -48,22 +48,21 @@ diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeListsCommon.txt XMP-Toolkit-S
  if(WIN32)
  	SetWinLinkFlags(${TARGET_NAME} "rpcrt4.lib ole32.lib" "${XMPCORE_LIB}")
  else(WIN32)
-@@ -253,6 +250,12 @@
- 	endif()
- endif()
+diff -Naur XMP-Toolkit-SDK-orig/XMPCore/source/ExpatAdapter.cpp XMP-Toolkit-SDK-patched/XMPCore/source/ExpatAdapter.cpp
+--- XMP-Toolkit-SDK-orig/XMPCore/source/ExpatAdapter.cpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPCore/source/ExpatAdapter.cpp	2026-02-20 18:11:13.436864782 +0000
+@@ -12,7 +12,7 @@
+ #include "source/ExpatAdapter.hpp"
+ #include "XMPCore/source/XMPMeta.hpp"
  
-+# Install targets
-+install(TARGETS ${TARGET_NAME}
-+    LIBRARY DESTINATION lib
-+    ARCHIVE DESTINATION lib
-+    RUNTIME DESTINATION bin)
-+
- # ==============================================================================
- # Define output
- SetOutputPath(${OUTPUT_DIR} 0)
+-#include "third-party/expat/lib/expat.h"
++#include <expat.h>
+ #include <string.h>
+ 
+ using namespace std;
 diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeLists.txt XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeLists.txt
 --- XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeLists.txt	2025-03-28 09:49:20.000000000 +0000
-+++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeLists.txt	2026-02-20 17:57:43.332244501 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeLists.txt	2026-02-20 18:11:32.021944575 +0000
 @@ -47,8 +47,9 @@
  include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/build/XMP_Config.cmake)
  
@@ -77,7 +76,7 @@ diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeLists.txt XMP-Toolkit-SDK-pa
  if(ANDROID)
 diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeListsCommon.txt XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeListsCommon.txt
 --- XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeListsCommon.txt	2025-03-28 09:49:20.000000000 +0000
-+++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeListsCommon.txt	2026-02-20 17:58:06.320231705 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeListsCommon.txt	2026-02-20 18:12:14.600137320 +0000
 @@ -65,20 +65,6 @@
  	)
  source_group("Header Files\\Public Headers" FILES ${PUBLIC_HEADER})
@@ -156,16 +155,63 @@ diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeListsCommon.txt XMP-Toolkit-
  if(UNIX)
  	if (NOT APPLE)
  		SetPlatformLinkFlags(${TARGET_NAME} "-Xlinker --version-script -Xlinker \"${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT}/${TARGET_NAME}.exp\"" "")
-@@ -327,6 +297,12 @@
+diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/source/FileHandlers/SVG_Handler.hpp XMP-Toolkit-SDK-patched/XMPFiles/source/FileHandlers/SVG_Handler.hpp
+--- XMP-Toolkit-SDK-orig/XMPFiles/source/FileHandlers/SVG_Handler.hpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/source/FileHandlers/SVG_Handler.hpp	2026-02-20 18:11:13.438864792 +0000
+@@ -25,7 +25,7 @@
+ #include "XMPFiles/source/XMPFiles_Impl.hpp"
+ #include "XMPFiles/source/FormatSupport/SVG_Adapter.hpp"
  
- set_target_properties(${TARGET_NAME} PROPERTIES OUTPUT_NAME  ${XMPFILES_LIB})
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
  
-+# Install targets
-+install(TARGETS ${TARGET_NAME}
-+    LIBRARY DESTINATION lib
-+    ARCHIVE DESTINATION lib
-+    RUNTIME DESTINATION bin)
-+
- # ==============================================================================
- # Define output for this project
- SetOutputPath(${OUTPUT_DIR} 0)
+ extern XMPFileHandler* SVG_MetaHandlerCTor( XMPFiles* parent );
+ 
+diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/source/FileHandlers/UCF_Handler.cpp XMP-Toolkit-SDK-patched/XMPFiles/source/FileHandlers/UCF_Handler.cpp
+--- XMP-Toolkit-SDK-orig/XMPFiles/source/FileHandlers/UCF_Handler.cpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/source/FileHandlers/UCF_Handler.cpp	2026-02-20 18:11:13.440864802 +0000
+@@ -18,7 +18,7 @@
+ 
+ #include "XMPFiles/source/FileHandlers/UCF_Handler.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
+ 
+ #include <time.h>
+ 
+diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/source/FormatSupport/SVG_Adapter.cpp XMP-Toolkit-SDK-patched/XMPFiles/source/FormatSupport/SVG_Adapter.cpp
+--- XMP-Toolkit-SDK-orig/XMPFiles/source/FormatSupport/SVG_Adapter.cpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/source/FormatSupport/SVG_Adapter.cpp	2026-02-20 18:11:13.444864822 +0000
+@@ -17,7 +17,7 @@
+ 
+ #include "XMPFiles/source/FormatSupport/SVG_Adapter.hpp"
+ 
+-#include "third-party/expat/lib/expat.h"
++#include <expat.h>
+ #include <string.h>
+ 
+ using namespace std;
+diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/source/FormatSupport/SWF_Support.cpp XMP-Toolkit-SDK-patched/XMPFiles/source/FormatSupport/SWF_Support.cpp
+--- XMP-Toolkit-SDK-orig/XMPFiles/source/FormatSupport/SWF_Support.cpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/source/FormatSupport/SWF_Support.cpp	2026-02-20 18:11:13.441864807 +0000
+@@ -18,7 +18,7 @@
+ 
+ #include "XMPFiles/source/FormatSupport/SWF_Support.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
+ 
+ // =================================================================================================
+ 
+diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/source/FormatSupport/SWF_Support.hpp XMP-Toolkit-SDK-patched/XMPFiles/source/FormatSupport/SWF_Support.hpp
+--- XMP-Toolkit-SDK-orig/XMPFiles/source/FormatSupport/SWF_Support.hpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/source/FormatSupport/SWF_Support.hpp	2026-02-20 18:11:13.443864817 +0000
+@@ -17,7 +17,7 @@
+ 
+ #include "XMPFiles/source/XMPFiles_Impl.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
+ 
+ // =================================================================================================
+ 
