@@ -1,6 +1,6 @@
 diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeLists.txt XMP-Toolkit-SDK-patched/XMPCore/build/CMakeLists.txt
---- XMP-Toolkit-SDK-orig/XMPCore/build/CMakeLists.txt	2023-07-06 14:24:35.000000000 +0000
-+++ XMP-Toolkit-SDK-patched/XMPCore/build/CMakeLists.txt	2026-02-20 17:21:44.190130449 +0000
+--- XMP-Toolkit-SDK-orig/XMPCore/build/CMakeLists.txt	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPCore/build/CMakeLists.txt	2026-02-20 17:57:43.332244501 +0000
 @@ -53,8 +53,9 @@
  	add_definitions(-DBUILDING_XMPCORE_AS_DYNAMIC=1)
  endif()
@@ -13,8 +13,8 @@ diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeLists.txt XMP-Toolkit-SDK-pat
  # ==============================================================================
  # Project specific config starts here
 diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeListsCommon.txt XMP-Toolkit-SDK-patched/XMPCore/build/CMakeListsCommon.txt
---- XMP-Toolkit-SDK-orig/XMPCore/build/CMakeListsCommon.txt	2023-07-06 14:24:35.000000000 +0000
-+++ XMP-Toolkit-SDK-patched/XMPCore/build/CMakeListsCommon.txt	2026-02-20 17:22:43.071598417 +0000
+--- XMP-Toolkit-SDK-orig/XMPCore/build/CMakeListsCommon.txt	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPCore/build/CMakeListsCommon.txt	2026-02-20 17:58:06.320231705 +0000
 @@ -87,13 +87,9 @@
  list (REMOVE_ITEM CORECLASS_SOURCE_FILES ${SOURCE_ROOT}/XMPCore_Impl.cpp)
  source_group("Source Files\\Core Classes" FILES ${CORECLASS_SOURCE_FILES})
@@ -44,7 +44,7 @@ diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeListsCommon.txt XMP-Toolkit-S
  set(FRAMEWORK_LIST "ALL:CoreFoundation" "Mac:CoreServices")
  AddMacFramework(${TARGET_NAME} FRAMEWORK_LIST)
 +# Link with expat from vcpkg
-+target_link_libraries(${TARGET_NAME} PRIVATE EXPAT::EXPAT)
++target_link_libraries(${TARGET_NAME} EXPAT::EXPAT)
  if(WIN32)
  	SetWinLinkFlags(${TARGET_NAME} "rpcrt4.lib ole32.lib" "${XMPCORE_LIB}")
  else(WIN32)
@@ -62,8 +62,8 @@ diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeListsCommon.txt XMP-Toolkit-S
  # Define output
  SetOutputPath(${OUTPUT_DIR} 0)
 diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeLists.txt XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeLists.txt
---- XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeLists.txt	2023-07-06 14:24:35.000000000 +0000
-+++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeLists.txt	2026-02-20 17:24:48.267490629 +0000
+--- XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeLists.txt	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeLists.txt	2026-02-20 17:57:43.332244501 +0000
 @@ -47,8 +47,9 @@
  include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/build/XMP_Config.cmake)
  
@@ -76,8 +76,8 @@ diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeLists.txt XMP-Toolkit-SDK-pa
  
  if(ANDROID)
 diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeListsCommon.txt XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeListsCommon.txt
---- XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeListsCommon.txt	2023-07-06 14:24:35.000000000 +0000
-+++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeListsCommon.txt	2026-02-20 17:24:11.435809939 +0000
+--- XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeListsCommon.txt	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeListsCommon.txt	2026-02-20 17:58:06.320231705 +0000
 @@ -65,20 +65,6 @@
  	)
  source_group("Header Files\\Public Headers" FILES ${PUBLIC_HEADER})
@@ -151,7 +151,7 @@ diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeListsCommon.txt XMP-Toolkit-
  AddMacFramework(${TARGET_NAME} FRAMEWORK_LIST)
  
 +# Link with zlib from vcpkg
-+target_link_libraries(${TARGET_NAME} PRIVATE ZLIB::ZLIB)
++target_link_libraries(${TARGET_NAME} ZLIB::ZLIB)
 +
  if(UNIX)
  	if (NOT APPLE)
