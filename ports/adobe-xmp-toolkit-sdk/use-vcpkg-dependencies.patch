@@ -1,8 +1,7 @@
-diff --git a/XMPCore/build/CMakeLists.txt b/XMPCore/build/CMakeLists.txt
-index 1111111..2222222 100644
---- a/XMPCore/build/CMakeLists.txt
-+++ b/XMPCore/build/CMakeLists.txt
-@@ -54,8 +54,8 @@ else()
+diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeLists.txt XMP-Toolkit-SDK-patched/XMPCore/build/CMakeLists.txt
+--- XMP-Toolkit-SDK-orig/XMPCore/build/CMakeLists.txt	2023-07-06 14:24:35.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPCore/build/CMakeLists.txt	2026-02-20 17:21:44.190130449 +0000
+@@ -53,8 +53,9 @@
  	add_definitions(-DBUILDING_XMPCORE_AS_DYNAMIC=1)
  endif()
  
@@ -13,26 +12,10 @@ index 1111111..2222222 100644
  
  # ==============================================================================
  # Project specific config starts here
-@@ -235,6 +235,13 @@ set_target_properties(${TARGET_NAME} PROPERTIES OUTPUT_NAME  ${XMPCORE_LIB})
- # Link dependencies
- set(FRAMEWORK_LIST "ALL:CoreFoundation" "Mac:CoreServices")
- AddMacFramework(${TARGET_NAME} FRAMEWORK_LIST)
-+# Link with expat from vcpkg
-+target_link_libraries(${TARGET_NAME} PRIVATE EXPAT::EXPAT)
-+
-+# Install targets
-+install(TARGETS ${TARGET_NAME}
-+    LIBRARY DESTINATION lib
-+    ARCHIVE DESTINATION lib
-+    RUNTIME DESTINATION bin)
- if(WIN32)
- 	SetWinLinkFlags(${TARGET_NAME} "rpcrt4.lib ole32.lib" "${XMPCORE_LIB}")
- else(WIN32)
-diff --git a/XMPCore/build/CMakeListsCommon.txt b/XMPCore/build/CMakeListsCommon.txt
-index 3333333..4444444 100644
---- a/XMPCore/build/CMakeListsCommon.txt
-+++ b/XMPCore/build/CMakeListsCommon.txt
-@@ -87,12 +87,8 @@ file (GLOB CORECLASS_SOURCE_FILES ${SOURCE_ROOT}/XMP*.cpp)
+diff -Naur XMP-Toolkit-SDK-orig/XMPCore/build/CMakeListsCommon.txt XMP-Toolkit-SDK-patched/XMPCore/build/CMakeListsCommon.txt
+--- XMP-Toolkit-SDK-orig/XMPCore/build/CMakeListsCommon.txt	2023-07-06 14:24:35.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPCore/build/CMakeListsCommon.txt	2026-02-20 17:22:43.071598417 +0000
+@@ -87,13 +87,9 @@
  list (REMOVE_ITEM CORECLASS_SOURCE_FILES ${SOURCE_ROOT}/XMPCore_Impl.cpp)
  source_group("Source Files\\Core Classes" FILES ${CORECLASS_SOURCE_FILES})
  
@@ -48,7 +31,7 @@ index 3333333..4444444 100644
  if(WIN32)
  	list (APPEND THIRDPARTY_SOURCE_FILES ${RESOURCE_ROOT}/win/expat_config.h)
  else()
-@@ -156,7 +152,6 @@ endif()
+@@ -155,7 +151,6 @@
  # include directories
  include_directories(${XMPROOT_DIR})
  include_directories(${XMPROOT_DIR}/public/include)
@@ -56,46 +39,46 @@ index 3333333..4444444 100644
  include_directories(${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT})
  if(UNIX AND NOT APPLE AND NOT ${XMP_BUILD_STATIC})
  include_directories(${XMPROOT_DIR}/XMPCore/third-party/boost)
-diff --git a/XMPFiles/build/CMakeLists.txt b/XMPFiles/build/CMakeLists.txt
-index 5555555..6666666 100644
---- a/XMPFiles/build/CMakeLists.txt
-+++ b/XMPFiles/build/CMakeLists.txt
-@@ -47,8 +47,9 @@ set(XMP_THIS_PROJECT_RELATIVEPATH "../..")
- include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/build/XMP_Config.cmake)
- 
- 
-+# Use vcpkg dependencies
-+find_package(ZLIB REQUIRED CONFIG)
- set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
--set(TP_EXPAT_PATH "${PROJECT_ROOT}/../../third-party/expat/lib/")
- set(LIB_ADOBEXMP XMPCore)
- 
- if(ANDROID)
-@@ -294,8 +295,18 @@ if (UNIX)
- 		list (REMOVE_ITEM LINKAGE_LIST "DLL:${LIB_ADOBEXMP}")
+@@ -235,6 +230,8 @@
+ # Link dependencies
+ set(FRAMEWORK_LIST "ALL:CoreFoundation" "Mac:CoreServices")
+ AddMacFramework(${TARGET_NAME} FRAMEWORK_LIST)
++# Link with expat from vcpkg
++target_link_libraries(${TARGET_NAME} PRIVATE EXPAT::EXPAT)
+ if(WIN32)
+ 	SetWinLinkFlags(${TARGET_NAME} "rpcrt4.lib ole32.lib" "${XMPCORE_LIB}")
+ else(WIN32)
+@@ -253,6 +250,12 @@
  	endif()
- 	target_link_libraries(${TARGET_NAME} ${LINKAGE_LIST})
-+	# Link with zlib from vcpkg
-+	target_link_libraries(${TARGET_NAME} PRIVATE ZLIB::ZLIB)
- else ()
- 	SetWinLinkFlags(${TARGET_NAME} "ws2_32.lib" "${XMPFILES_LIB}")
--endif ()
-\ No newline at end of file
-+	# Link with zlib from vcpkg
-+	target_link_libraries(${TARGET_NAME} PRIVATE ZLIB::ZLIB)
-+endif ()
-+
+ endif()
+ 
 +# Install targets
 +install(TARGETS ${TARGET_NAME}
 +    LIBRARY DESTINATION lib
 +    ARCHIVE DESTINATION lib
 +    RUNTIME DESTINATION bin)
 +
-diff --git a/XMPFiles/build/CMakeListsCommon.txt b/XMPFiles/build/CMakeListsCommon.txt
-index 7777777..8888888 100644
---- a/XMPFiles/build/CMakeListsCommon.txt
-+++ b/XMPFiles/build/CMakeListsCommon.txt
-@@ -65,16 +65,6 @@ list (APPEND PUBLIC_HEADER
+ # ==============================================================================
+ # Define output
+ SetOutputPath(${OUTPUT_DIR} 0)
+diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeLists.txt XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeLists.txt
+--- XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeLists.txt	2023-07-06 14:24:35.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeLists.txt	2026-02-20 17:22:52.618516247 +0000
+@@ -47,8 +47,9 @@
+ include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/build/XMP_Config.cmake)
+ 
+ 
++# Use vcpkg dependencies
++find_package(ZLIB REQUIRED)
+ set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
+-set(TP_EXPAT_PATH "${PROJECT_ROOT}/../../third-party/expat/lib/")
+ set(LIB_ADOBEXMP XMPCore)
+ 
+ if(ANDROID)
+diff -Naur XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeListsCommon.txt XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeListsCommon.txt
+--- XMP-Toolkit-SDK-orig/XMPFiles/build/CMakeListsCommon.txt	2023-07-06 14:24:35.000000000 +0000
++++ XMP-Toolkit-SDK-patched/XMPFiles/build/CMakeListsCommon.txt	2026-02-20 17:24:11.435809939 +0000
+@@ -65,20 +65,6 @@
  	)
  source_group("Header Files\\Public Headers" FILES ${PUBLIC_HEADER})
  
@@ -116,11 +99,11 @@ index 7777777..8888888 100644
  list (APPEND HEADERFILES
  	${XMPROOT_DIR}/source/Host_IO.hpp
  	${XMPROOT_DIR}/source/XIO.hpp
-@@ -173,17 +163,6 @@ else ()
+@@ -174,20 +160,6 @@
+ source_group("Source Files\\Public\\XMPCore" FILES ${PUBLIC_XMPCORE_CLIENTGLUE_FILES})
  endif()
- source_group("Source Files\\PluginHandler" FILES ${SOURCEFILES_PLUGINHANDLER})
- 
--list (APPEND SOURCEFILES_THIRDPARTY_ZLIB
+ #endif()
+-list (APPEND HEADERFILES_THIRDPARTY_ZLIB
 -	${XMPROOT_DIR}/third-party/zlib/adler32.c
 -	${XMPROOT_DIR}/third-party/zlib/compress.c
 -	${XMPROOT_DIR}/third-party/zlib/crc32.c
@@ -134,11 +117,10 @@ index 7777777..8888888 100644
 -	${XMPROOT_DIR}/third-party/zlib/zutil.c
 -	)
 -source_group("Source Files\\ThirdParty\\zlib" FILES ${HEADERFILES_THIRDPARTY_ZLIB})
--
+ 
  list(APPEND SOURCE_FILES
  	${INTERNAL_HEADER_COMMONCODE_NMDS}
- 	${INTERNAL_HEADER_COMMONCODE}
-@@ -195,7 +174,6 @@ list(APPEND SOURCE_FILES
+@@ -200,7 +172,6 @@
  	${INTERNAL_HEADER_PLUGINHANDLER}
  	${PUBLIC_HEADER_CLIENTGLUE}
  	${PUBLIC_HEADER}
@@ -146,17 +128,16 @@ index 7777777..8888888 100644
  	${HEADERFILES}
  	${RESOURCE_FILES}
  	${SOURCEFILES_COMMONCODE_NMDS}
-@@ -209,9 +187,6 @@ list(APPEND SOURCE_FILES
+@@ -213,8 +184,6 @@
  	${SOURCEFILES_PLUGINHANDLER}
  	${PUBLIC_XMPCOMMON_CLIENTGLUE_FILES}
  	${PUBLIC_XMPCORE_CLIENTGLUE_FILES}
 -	${HEADERFILES_THIRDPARTY_ZLIB}
 -	${FILES_THIRDPARTY_EXPAT}
--	${SOURCEFILES_THIRDPARTY_ZLIB}
  	)
  
  # include directories
-@@ -219,8 +194,6 @@ include_directories(${XMPROOT_DIR})
+@@ -222,8 +191,6 @@
  include_directories(${XMPROOT_DIR}/public/include)
  include_directories(${XMPROOT_DIR}/public/include/client-glue)
  
@@ -165,3 +146,26 @@ index 7777777..8888888 100644
  include_directories(${XMPROOT_DIR}/XMPFilesPlugins/api/source)
  include_directories(${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT})
  
+@@ -306,6 +273,9 @@
+ set(FRAMEWORK_LIST "ALL:CoreFoundation" "Mac:CoreServices" "ALL:${LIB_ADOBEXMP}" "ALL:${XMP_PLATFORM_LINK}")
+ AddMacFramework(${TARGET_NAME} FRAMEWORK_LIST)
+ 
++# Link with zlib from vcpkg
++target_link_libraries(${TARGET_NAME} PRIVATE ZLIB::ZLIB)
++
+ if(UNIX)
+ 	if (NOT APPLE)
+ 		SetPlatformLinkFlags(${TARGET_NAME} "-Xlinker --version-script -Xlinker \"${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT}/${TARGET_NAME}.exp\"" "")
+@@ -327,6 +297,12 @@
+ 
+ set_target_properties(${TARGET_NAME} PROPERTIES OUTPUT_NAME  ${XMPFILES_LIB})
+ 
++# Install targets
++install(TARGETS ${TARGET_NAME}
++    LIBRARY DESTINATION lib
++    ARCHIVE DESTINATION lib
++    RUNTIME DESTINATION bin)
++
+ # ==============================================================================
+ # Define output for this project
+ SetOutputPath(${OUTPUT_DIR} 0)

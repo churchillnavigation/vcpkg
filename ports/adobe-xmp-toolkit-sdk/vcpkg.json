@@ -1,6 +1,6 @@
 {
   "name": "adobe-xmp-toolkit-sdk",
-  "version": "2023.07",
+  "version-date": "2023-07-06",
   "description": "The XMP Toolkit allows you to integrate XMP functionality into your product or solution. It supports parsing, manipulating, and serializing metadata.",
   "homepage": "https://github.com/adobe/XMP-Toolkit-SDK",
   "license": "BSD-3-Clause",
