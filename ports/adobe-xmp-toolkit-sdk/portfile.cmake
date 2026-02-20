@@ -164,18 +164,18 @@ if(NOT TARGET adobe-xmp-toolkit-sdk::XMPCore)
         INTERFACE_LINK_LIBRARIES expat::expat
     )
     
-    if(CMAKE_BUILD_TYPE STREQUAL \"Debug\" OR NOT CMAKE_BUILD_TYPE)
-        set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
-            IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPCore${CMAKE_STATIC_LIBRARY_SUFFIX}\"
-        )
-    endif()
+    # Set up locations for all build configurations
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
+        IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPCore${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPCore${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_RELWITHDEBINFO \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPCore${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_MINSIZEREL \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPCore${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+    )
     
-    if(CMAKE_BUILD_TYPE STREQUAL \"Release\" OR NOT CMAKE_BUILD_TYPE)
-        set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
-            IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPCore${CMAKE_STATIC_LIBRARY_SUFFIX}\"
-            IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPCore${CMAKE_STATIC_LIBRARY_SUFFIX}\"
-        )
-    endif()
+    # Set default IMPORTED_LOCATION (used when CMAKE_BUILD_TYPE is not set)
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPCore PROPERTY
+        IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPCore${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+    )
 endif()
 
 if(NOT TARGET adobe-xmp-toolkit-sdk::XMPFiles)
@@ -189,18 +189,18 @@ if(NOT TARGET adobe-xmp-toolkit-sdk::XMPFiles)
         INTERFACE_LINK_LIBRARIES ZLIB::ZLIB adobe-xmp-toolkit-sdk::XMPCore
     )
     
-    if(CMAKE_BUILD_TYPE STREQUAL \"Debug\" OR NOT CMAKE_BUILD_TYPE)
-        set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
-            IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPFiles${CMAKE_STATIC_LIBRARY_SUFFIX}\"
-        )
-    endif()
+    # Set up locations for all build configurations
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
+        IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPFiles${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPFiles${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_RELWITHDEBINFO \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPFiles${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_MINSIZEREL \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPFiles${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+    )
     
-    if(CMAKE_BUILD_TYPE STREQUAL \"Release\" OR NOT CMAKE_BUILD_TYPE)
-        set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
-            IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPFiles${CMAKE_STATIC_LIBRARY_SUFFIX}\"
-            IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPFiles${CMAKE_STATIC_LIBRARY_SUFFIX}\"
-        )
-    endif()
+    # Set default IMPORTED_LOCATION (used when CMAKE_BUILD_TYPE is not set)
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPFiles PROPERTY
+        IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPFiles${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+    )
 endif()
 ")
 
