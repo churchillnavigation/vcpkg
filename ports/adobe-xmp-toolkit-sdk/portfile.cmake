@@ -26,21 +26,24 @@ vcpkg_cmake_configure(
 vcpkg_cmake_build()
 
 # Manually install libraries - SDK outputs to public/libraries/<platform>/<config>/
-# The SDK uses custom naming: staticXMPCore.ar and staticXMPFiles.ar for static builds
+# The SDK uses custom naming: staticXMPCore.ar and staticXMPFiles.ar for static builds on Linux
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     # Static libraries
     if(VCPKG_TARGET_IS_LINUX)
         set(LIB_DIR "i80386linux")
         set(XMPCORE_LIB "staticXMPCore.ar")
         set(XMPFILES_LIB "staticXMPFiles.ar")
+        set(LIB_RENAME_EXT ".a")
     elseif(VCPKG_TARGET_IS_OSX)
         set(LIB_DIR "macintosh")
         set(XMPCORE_LIB "libXMPCoreStatic.a")
         set(XMPFILES_LIB "libXMPFilesStatic.a")
+        set(LIB_RENAME_EXT "")  # No rename needed
     elseif(VCPKG_TARGET_IS_WINDOWS)
         set(LIB_DIR "windows")
         set(XMPCORE_LIB "XMPCoreStatic.lib")
         set(XMPFILES_LIB "XMPFilesStatic.lib")
+        set(LIB_RENAME_EXT "")  # No rename needed
     endif()
 else()
     # Dynamic libraries
@@ -48,35 +51,79 @@ else()
         set(LIB_DIR "i80386linux")
         set(XMPCORE_LIB "libXMPCore.so")
         set(XMPFILES_LIB "libXMPFiles.so")
+        set(LIB_RENAME_EXT "")  # No rename needed
     elseif(VCPKG_TARGET_IS_OSX)
         set(LIB_DIR "macintosh")
         set(XMPCORE_LIB "libXMPCore.dylib")
         set(XMPFILES_LIB "libXMPFiles.dylib")
+        set(LIB_RENAME_EXT "")  # No rename needed
     elseif(VCPKG_TARGET_IS_WINDOWS)
         set(LIB_DIR "windows")
-        set(XMPCORE_LIB "XMPCore.dll")
-        set(XMPFILES_LIB "XMPFiles.dll")
+        set(XMPCORE_DLL "XMPCore.dll")
+        set(XMPFILES_DLL "XMPFiles.dll")
+        set(XMPCORE_LIB "XMPCore.lib")
+        set(XMPFILES_LIB "XMPFiles.lib")
     endif()
 endif()
 
 # Install release libraries
 if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
-    file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPCORE_LIB}"
-         DESTINATION "${CURRENT_PACKAGES_DIR}/lib"
-         RENAME "libXMPCore.a")
-    file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPFILES_LIB}"
-         DESTINATION "${CURRENT_PACKAGES_DIR}/lib"
-         RENAME "libXMPFiles.a")
+    if(VCPKG_TARGET_IS_WINDOWS AND VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
+        # Windows DLLs: install DLL to bin/ and import library to lib/
+        file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPCORE_DLL}"
+             DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
+        file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPFILES_DLL}"
+             DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
+        file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPCORE_LIB}"
+             DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
+        file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPFILES_LIB}"
+             DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
+    else()
+        # Static libraries or non-Windows dynamic libraries
+        if(LIB_RENAME_EXT)
+            file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPCORE_LIB}"
+                 DESTINATION "${CURRENT_PACKAGES_DIR}/lib"
+                 RENAME "libXMPCore${LIB_RENAME_EXT}")
+            file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPFILES_LIB}"
+                 DESTINATION "${CURRENT_PACKAGES_DIR}/lib"
+                 RENAME "libXMPFiles${LIB_RENAME_EXT}")
+        else()
+            file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPCORE_LIB}"
+                 DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
+            file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/release/${XMPFILES_LIB}"
+                 DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
+        endif()
+    endif()
 endif()
 
 # Install debug libraries
 if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
-    file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPCORE_LIB}"
-         DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib"
-         RENAME "libXMPCore.a")
-    file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPFILES_LIB}"
-         DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib"
-         RENAME "libXMPFiles.a")
+    if(VCPKG_TARGET_IS_WINDOWS AND VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
+        # Windows DLLs: install DLL to debug/bin/ and import library to debug/lib/
+        file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPCORE_DLL}"
+             DESTINATION "${CURRENT_PACKAGES_DIR}/debug/bin")
+        file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPFILES_DLL}"
+             DESTINATION "${CURRENT_PACKAGES_DIR}/debug/bin")
+        file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPCORE_LIB}"
+             DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib")
+        file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPFILES_LIB}"
+             DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib")
+    else()
+        # Static libraries or non-Windows dynamic libraries
+        if(LIB_RENAME_EXT)
+            file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPCORE_LIB}"
+                 DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib"
+                 RENAME "libXMPCore${LIB_RENAME_EXT}")
+            file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPFILES_LIB}"
+                 DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib"
+                 RENAME "libXMPFiles${LIB_RENAME_EXT}")
+        else()
+            file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPCORE_LIB}"
+                 DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib")
+            file(INSTALL "${SOURCE_PATH}/public/libraries/${LIB_DIR}/debug/${XMPFILES_LIB}"
+                 DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib")
+        endif()
+    endif()
 endif()
 
 # Install headers
