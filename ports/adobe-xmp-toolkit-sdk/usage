@@ -1,14 +1,18 @@
 adobe-xmp-toolkit-sdk provides CMake targets:
 
-    find_package(EXPAT CONFIG REQUIRED)
-    find_package(ZLIB CONFIG REQUIRED)
+    find_package(adobe-xmp-toolkit-sdk CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE 
+        adobe-xmp-toolkit-sdk::XMPCore 
+        adobe-xmp-toolkit-sdk::XMPFiles)
 
 The XMP Toolkit SDK provides two main libraries:
 - XMPCore: Core library for parsing, manipulating, and serializing XMP metadata
 - XMPFiles: Library for locating, adding, or updating XMP metadata in files
 
-Both libraries are built and installed by this port. Link against them using:
+The dependencies (expat and zlib) are automatically linked through the CMake targets.
+
+Legacy usage (not recommended):
+    find_package(EXPAT CONFIG REQUIRED)
+    find_package(ZLIB CONFIG REQUIRED)
     target_link_libraries(main PRIVATE XMPCore XMPFiles)
 
-Note: The XMP Toolkit SDK uses expat and zlib as dependencies, which are
-automatically handled by vcpkg.

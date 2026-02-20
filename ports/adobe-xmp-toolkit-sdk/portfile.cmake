@@ -144,6 +144,80 @@ if(EXISTS "${CURRENT_PACKAGES_DIR}/debug/include")
     file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 endif()
 
+# Create CMake targets file
+file(WRITE "${CURRENT_PACKAGES_DIR}/share/${PORT}/adobe-xmp-toolkit-sdk-targets.cmake" 
+"# Generated CMake target import file
+
+# Compute the installation prefix relative to this file
+get_filename_component(_IMPORT_PREFIX \"\${CMAKE_CURRENT_LIST_FILE}\" PATH)
+get_filename_component(_IMPORT_PREFIX \"\${_IMPORT_PREFIX}\" PATH)
+get_filename_component(_IMPORT_PREFIX \"\${_IMPORT_PREFIX}\" PATH)
+
+if(NOT TARGET adobe-xmp-toolkit-sdk::XMPCore)
+    add_library(adobe-xmp-toolkit-sdk::XMPCore STATIC IMPORTED)
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES \"\${_IMPORT_PREFIX}/include\"
+    )
+    
+    # Link to dependencies (use expat::expat, the actual target from expat's config)
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPCore APPEND PROPERTY
+        INTERFACE_LINK_LIBRARIES expat::expat
+    )
+    
+    if(CMAKE_BUILD_TYPE STREQUAL \"Debug\" OR NOT CMAKE_BUILD_TYPE)
+        set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
+            IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPCore${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+        )
+    endif()
+    
+    if(CMAKE_BUILD_TYPE STREQUAL \"Release\" OR NOT CMAKE_BUILD_TYPE)
+        set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
+            IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPCore${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+            IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPCore${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+        )
+    endif()
+endif()
+
+if(NOT TARGET adobe-xmp-toolkit-sdk::XMPFiles)
+    add_library(adobe-xmp-toolkit-sdk::XMPFiles STATIC IMPORTED)
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES \"\${_IMPORT_PREFIX}/include\"
+    )
+    
+    # Link to dependencies
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPFiles APPEND PROPERTY
+        INTERFACE_LINK_LIBRARIES ZLIB::ZLIB adobe-xmp-toolkit-sdk::XMPCore
+    )
+    
+    if(CMAKE_BUILD_TYPE STREQUAL \"Debug\" OR NOT CMAKE_BUILD_TYPE)
+        set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
+            IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPFiles${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+        )
+    endif()
+    
+    if(CMAKE_BUILD_TYPE STREQUAL \"Release\" OR NOT CMAKE_BUILD_TYPE)
+        set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
+            IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPFiles${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+            IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}XMPFiles${CMAKE_STATIC_LIBRARY_SUFFIX}\"
+        )
+    endif()
+endif()
+")
+
+# Configure and install the CMake config file
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    "${CMAKE_CURRENT_LIST_DIR}/adobe-xmp-toolkit-sdkConfig.cmake.in"
+    "${CURRENT_PACKAGES_DIR}/share/${PORT}/adobe-xmp-toolkit-sdkConfig.cmake"
+    INSTALL_DESTINATION "share/${PORT}"
+)
+
+write_basic_package_version_file(
+    "${CURRENT_PACKAGES_DIR}/share/${PORT}/adobe-xmp-toolkit-sdkConfigVersion.cmake"
+    VERSION "2025.03.28"
+    COMPATIBILITY SameMajorVersion
+)
+
 # Install usage
 file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" 
      DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
