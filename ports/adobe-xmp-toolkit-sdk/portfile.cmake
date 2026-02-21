@@ -47,7 +47,14 @@ if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
         set(XMPFILES_LIB "libXMPFilesStatic.a")
         set(LIB_RENAME_EXT "")  # No rename needed
     elseif(VCPKG_TARGET_IS_WINDOWS)
-        set(LIB_DIR "windows")
+        # Determine platform directory based on architecture
+        if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
+            set(LIB_DIR "windows_x64")
+        elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
+            set(LIB_DIR "windows_arm64")
+        else()
+            set(LIB_DIR "windows")
+        endif()
         set(XMPCORE_LIB "XMPCoreStatic.lib")
         set(XMPFILES_LIB "XMPFilesStatic.lib")
         set(LIB_RENAME_EXT "")  # No rename needed
@@ -72,7 +79,14 @@ else()
         set(XMPFILES_LIB "libXMPFiles.dylib")
         set(LIB_RENAME_EXT "")  # No rename needed
     elseif(VCPKG_TARGET_IS_WINDOWS)
-        set(LIB_DIR "windows")
+        # Determine platform directory based on architecture
+        if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
+            set(LIB_DIR "windows_x64")
+        elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
+            set(LIB_DIR "windows_arm64")
+        else()
+            set(LIB_DIR "windows")
+        endif()
         set(XMPCORE_DLL "XMPCore.dll")
         set(XMPFILES_DLL "XMPFiles.dll")
         set(XMPCORE_LIB "XMPCore.lib")
@@ -164,6 +178,93 @@ if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
     set(LIBRARY_TYPE "SHARED")
 endif()
 
+# For Windows SHARED libraries, we need to set both IMPORTED_LOCATION (DLL) and IMPORTED_IMPLIB (.lib)
+# For other platforms or STATIC libraries, only IMPORTED_LOCATION is needed
+if(VCPKG_TARGET_IS_WINDOWS AND VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
+    set(XMPCORE_IMPLIB_CODE "
+    # Windows DLL: Set IMPORTED_IMPLIB for import library
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
+        IMPORTED_IMPLIB_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/XMPCore.lib\"
+        IMPORTED_IMPLIB_RELEASE \"\${_IMPORT_PREFIX}/lib/XMPCore.lib\"
+        IMPORTED_IMPLIB_RELWITHDEBINFO \"\${_IMPORT_PREFIX}/lib/XMPCore.lib\"
+        IMPORTED_IMPLIB_MINSIZEREL \"\${_IMPORT_PREFIX}/lib/XMPCore.lib\"
+    )
+    
+    # Set default IMPORTED_IMPLIB
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPCore PROPERTY
+        IMPORTED_IMPLIB \"\${_IMPORT_PREFIX}/lib/XMPCore.lib\"
+    )
+    
+    # Windows DLL: IMPORTED_LOCATION points to the DLL
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
+        IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/bin/XMPCore.dll\"
+        IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/bin/XMPCore.dll\"
+        IMPORTED_LOCATION_RELWITHDEBINFO \"\${_IMPORT_PREFIX}/bin/XMPCore.dll\"
+        IMPORTED_LOCATION_MINSIZEREL \"\${_IMPORT_PREFIX}/bin/XMPCore.dll\"
+    )
+    
+    # Set default IMPORTED_LOCATION
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPCore PROPERTY
+        IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/bin/XMPCore.dll\"
+    )")
+    
+    set(XMPFILES_IMPLIB_CODE "
+    # Windows DLL: Set IMPORTED_IMPLIB for import library
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
+        IMPORTED_IMPLIB_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/XMPFiles.lib\"
+        IMPORTED_IMPLIB_RELEASE \"\${_IMPORT_PREFIX}/lib/XMPFiles.lib\"
+        IMPORTED_IMPLIB_RELWITHDEBINFO \"\${_IMPORT_PREFIX}/lib/XMPFiles.lib\"
+        IMPORTED_IMPLIB_MINSIZEREL \"\${_IMPORT_PREFIX}/lib/XMPFiles.lib\"
+    )
+    
+    # Set default IMPORTED_IMPLIB
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPFiles PROPERTY
+        IMPORTED_IMPLIB \"\${_IMPORT_PREFIX}/lib/XMPFiles.lib\"
+    )
+    
+    # Windows DLL: IMPORTED_LOCATION points to the DLL
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
+        IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/bin/XMPFiles.dll\"
+        IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/bin/XMPFiles.dll\"
+        IMPORTED_LOCATION_RELWITHDEBINFO \"\${_IMPORT_PREFIX}/bin/XMPFiles.dll\"
+        IMPORTED_LOCATION_MINSIZEREL \"\${_IMPORT_PREFIX}/bin/XMPFiles.dll\"
+    )
+    
+    # Set default IMPORTED_LOCATION
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPFiles PROPERTY
+        IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/bin/XMPFiles.dll\"
+    )")
+else()
+    # Non-Windows or static libraries: use standard library naming
+    set(XMPCORE_IMPLIB_CODE "
+    # Set up locations for all build configurations
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
+        IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_RELWITHDEBINFO \"\${_IMPORT_PREFIX}/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_MINSIZEREL \"\${_IMPORT_PREFIX}/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
+    )
+    
+    # Set default IMPORTED_LOCATION (used when CMAKE_BUILD_TYPE is not set)
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPCore PROPERTY
+        IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
+    )")
+    
+    set(XMPFILES_IMPLIB_CODE "
+    # Set up locations for all build configurations
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
+        IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_RELWITHDEBINFO \"\${_IMPORT_PREFIX}/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
+        IMPORTED_LOCATION_MINSIZEREL \"\${_IMPORT_PREFIX}/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
+    )
+    
+    # Set default IMPORTED_LOCATION (used when CMAKE_BUILD_TYPE is not set)
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPFiles PROPERTY
+        IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
+    )")
+endif()
+
 file(WRITE "${CURRENT_PACKAGES_DIR}/share/${PORT}/adobe-xmp-toolkit-sdk-targets.cmake" 
 "# Generated CMake target import file
 
@@ -182,19 +283,7 @@ if(NOT TARGET adobe-xmp-toolkit-sdk::XMPCore)
     set_property(TARGET adobe-xmp-toolkit-sdk::XMPCore APPEND PROPERTY
         INTERFACE_LINK_LIBRARIES expat::expat
     )
-    
-    # Set up locations for all build configurations
-    set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
-        IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
-        IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
-        IMPORTED_LOCATION_RELWITHDEBINFO \"\${_IMPORT_PREFIX}/lib/${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
-        IMPORTED_LOCATION_MINSIZEREL \"\${_IMPORT_PREFIX}/lib/${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
-    )
-    
-    # Set default IMPORTED_LOCATION (used when CMAKE_BUILD_TYPE is not set)
-    set_property(TARGET adobe-xmp-toolkit-sdk::XMPCore PROPERTY
-        IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/lib/${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
-    )
+    ${XMPCORE_IMPLIB_CODE}
 endif()
 
 if(NOT TARGET adobe-xmp-toolkit-sdk::XMPFiles)
@@ -207,19 +296,7 @@ if(NOT TARGET adobe-xmp-toolkit-sdk::XMPFiles)
     set_property(TARGET adobe-xmp-toolkit-sdk::XMPFiles APPEND PROPERTY
         INTERFACE_LINK_LIBRARIES ZLIB::ZLIB adobe-xmp-toolkit-sdk::XMPCore
     )
-    
-    # Set up locations for all build configurations
-    set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
-        IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
-        IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
-        IMPORTED_LOCATION_RELWITHDEBINFO \"\${_IMPORT_PREFIX}/lib/${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
-        IMPORTED_LOCATION_MINSIZEREL \"\${_IMPORT_PREFIX}/lib/${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
-    )
-    
-    # Set default IMPORTED_LOCATION (used when CMAKE_BUILD_TYPE is not set)
-    set_property(TARGET adobe-xmp-toolkit-sdk::XMPFiles PROPERTY
-        IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/lib/${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
-    )
+    ${XMPFILES_IMPLIB_CODE}
 endif()
 ")
 
