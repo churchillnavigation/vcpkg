@@ -1,0 +1,13 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Find required dependencies
+find_dependency(EXPAT CONFIG)
+# ZLIB doesn't provide a config file, use the FindZLIB module
+find_dependency(ZLIB)
+
+# Import the targets
+include("${CMAKE_CURRENT_LIST_DIR}/adobe-xmp-toolkit-sdk-targets.cmake")
+
+check_required_components(adobe-xmp-toolkit-sdk)

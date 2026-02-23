@@ -1,0 +1,11 @@
+--- a/source/EndianUtils.hpp
++++ b/source/EndianUtils.hpp
+@@ -46,6 +46,8 @@
+ 	 #ifndef kBigEndianHost	// Typically in the makefile for generic UNIX.
+ 		#if __GNUC__ && (__i386__ || __x86_64__)
+ 			#define kBigEndianHost 0
++		#elif __GNUC__ && (__aarch64__ || __arm64__)
++			#define kBigEndianHost 0
+ 		#elif __GNUC__ && (__sparc__)
+ 			#define kBigEndianHost 1
+ 			#define kLittleEndianHost 0

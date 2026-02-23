@@ -1,0 +1,113 @@
+diff -Naur original/XMPFiles/build/CMakeLists.txt modified/XMPFiles/build/CMakeLists.txt
+--- a/XMPFiles/build/CMakeLists.txt	2026-02-23 21:08:00.745470043 +0000
++++ b/XMPFiles/build/CMakeLists.txt	2026-02-23 21:08:08.816452531 +0000
+@@ -46,6 +46,8 @@
+ 
+ include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/build/XMP_Config.cmake)
+ 
++find_package(ZLIB REQUIRED)
++set(PROJECT_ROOT ${CMAKE_SOURCE_DIR}/..)
+ 
+ set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
+ set(TP_EXPAT_PATH "${PROJECT_ROOT}/../../third-party/expat/lib/")
+diff -Naur original/XMPFiles/build/CMakeListsCommon.txt modified/XMPFiles/build/CMakeListsCommon.txt
+--- a/XMPFiles/build/CMakeListsCommon.txt	2026-02-23 21:08:00.745470043 +0000
++++ b/XMPFiles/build/CMakeListsCommon.txt	2026-02-23 21:08:37.456387163 +0000
+@@ -65,11 +65,6 @@
+ 	)
+ source_group("Header Files\\Public Headers" FILES ${PUBLIC_HEADER})
+ 
+-file (GLOB HEADERFILES_THIRDPARTY_ZLIB ${XMPROOT_DIR}/third-party/zlib/*.h)
+-list (REMOVE_ITEM HEADERFILES_THIRDPARTY_ZLIB
+-	${CMAKE_CURRENT_SOURCE_DIR}/${XMPROOT_DIR}/third-party/zlib/gzguts.h
+-	)
+-source_group("Header Files\\ThirdParty\\zlib" FILES ${HEADERFILES_THIRDPARTY_ZLIB})
+ 
+ list (APPEND FILES_THIRDPARTY_EXPAT
+ 	${TP_EXPAT_PATH}/xmlparse.c
+@@ -174,20 +169,6 @@
+ source_group("Source Files\\Public\\XMPCore" FILES ${PUBLIC_XMPCORE_CLIENTGLUE_FILES})
+ endif()
+ #endif()
+-list (APPEND HEADERFILES_THIRDPARTY_ZLIB
+-	${XMPROOT_DIR}/third-party/zlib/adler32.c
+-	${XMPROOT_DIR}/third-party/zlib/compress.c
+-	${XMPROOT_DIR}/third-party/zlib/crc32.c
+-	${XMPROOT_DIR}/third-party/zlib/deflate.c
+-	${XMPROOT_DIR}/third-party/zlib/infback.c
+-	${XMPROOT_DIR}/third-party/zlib/inffast.c
+-	${XMPROOT_DIR}/third-party/zlib/inflate.c
+-	${XMPROOT_DIR}/third-party/zlib/inftrees.c
+-	${XMPROOT_DIR}/third-party/zlib/trees.c
+-	${XMPROOT_DIR}/third-party/zlib/uncompr.c
+-	${XMPROOT_DIR}/third-party/zlib/zutil.c
+-	)
+-source_group("Source Files\\ThirdParty\\zlib" FILES ${HEADERFILES_THIRDPARTY_ZLIB})
+ 
+ list(APPEND SOURCE_FILES
+ 	${INTERNAL_HEADER_COMMONCODE_NMDS}
+@@ -213,7 +194,6 @@
+ 	${SOURCEFILES_PLUGINHANDLER}
+ 	${PUBLIC_XMPCOMMON_CLIENTGLUE_FILES}
+ 	${PUBLIC_XMPCORE_CLIENTGLUE_FILES}
+-	${HEADERFILES_THIRDPARTY_ZLIB}
+ 	${FILES_THIRDPARTY_EXPAT}
+ 	)
+ 
+@@ -288,6 +268,8 @@
+ # ==============================================================================
+ # Link dependencies
+ 
++target_link_libraries(${TARGET_NAME} ZLIB::ZLIB)
++
+ if(WIN32)
+ 	target_link_libraries(
+ 		${TARGET_NAME}
+diff -Naur original/XMPFiles/source/FileHandlers/SVG_Handler.hpp modified/XMPFiles/source/FileHandlers/SVG_Handler.hpp
+--- a/XMPFiles/source/FileHandlers/SVG_Handler.hpp	2026-02-23 21:08:00.747470038 +0000
++++ b/XMPFiles/source/FileHandlers/SVG_Handler.hpp	2026-02-23 21:08:43.519372056 +0000
+@@ -25,7 +25,7 @@
+ #include "XMPFiles/source/XMPFiles_Impl.hpp"
+ #include "XMPFiles/source/FormatSupport/SVG_Adapter.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
+ 
+ extern XMPFileHandler* SVG_MetaHandlerCTor( XMPFiles* parent );
+ 
+diff -Naur original/XMPFiles/source/FileHandlers/UCF_Handler.cpp modified/XMPFiles/source/FileHandlers/UCF_Handler.cpp
+--- a/XMPFiles/source/FileHandlers/UCF_Handler.cpp	2026-02-23 21:08:00.748470036 +0000
++++ b/XMPFiles/source/FileHandlers/UCF_Handler.cpp	2026-02-23 21:08:43.519372056 +0000
+@@ -18,7 +18,7 @@
+ 
+ #include "XMPFiles/source/FileHandlers/UCF_Handler.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
+ 
+ #include <time.h>
+ 
+diff -Naur original/XMPFiles/source/FormatSupport/SWF_Support.cpp modified/XMPFiles/source/FormatSupport/SWF_Support.cpp
+--- a/XMPFiles/source/FormatSupport/SWF_Support.cpp	2026-02-23 21:08:00.750470032 +0000
++++ b/XMPFiles/source/FormatSupport/SWF_Support.cpp	2026-02-23 21:08:43.520372053 +0000
+@@ -18,7 +18,7 @@
+ 
+ #include "XMPFiles/source/FormatSupport/SWF_Support.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
+ 
+ // =================================================================================================
+ 
+diff -Naur original/XMPFiles/source/FormatSupport/SWF_Support.hpp modified/XMPFiles/source/FormatSupport/SWF_Support.hpp
+--- a/XMPFiles/source/FormatSupport/SWF_Support.hpp	2026-02-23 21:08:00.751470030 +0000
++++ b/XMPFiles/source/FormatSupport/SWF_Support.hpp	2026-02-23 21:08:43.520372053 +0000
+@@ -17,7 +17,7 @@
+ 
+ #include "XMPFiles/source/XMPFiles_Impl.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
+ 
+ // =================================================================================================
+ 
