@@ -1,0 +1,29 @@
+include_guard(GLOBAL)
+include(CMakeFindDependencyMacro)
+
+find_dependency(EXPAT CONFIG)
+find_dependency(ZLIB)
+
+get_filename_component(_IMPORT_PREFIX "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+
+add_library(adobe::XMPCore STATIC IMPORTED)
+set_target_properties(adobe::XMPCore PROPERTIES
+  IMPORTED_CONFIGURATIONS "DEBUG;RELEASE;RELWITHDEBINFO;MINSIZEREL"
+  IMPORTED_LOCATION_DEBUG "$<$<BOOL:${WIN32}>:${_IMPORT_PREFIX}/debug/lib/staticXMPCore.lib>$<$<NOT:$<BOOL:${WIN32}>>:${_IMPORT_PREFIX}/debug/lib/libstaticXMPCore.a>"
+  IMPORTED_LOCATION_RELEASE "$<$<BOOL:${WIN32}>:${_IMPORT_PREFIX}/lib/staticXMPCore.lib>$<$<NOT:$<BOOL:${WIN32}>>:${_IMPORT_PREFIX}/lib/libstaticXMPCore.a>"
+  IMPORTED_LOCATION_RELWITHDEBINFO "$<$<BOOL:${WIN32}>:${_IMPORT_PREFIX}/lib/staticXMPCore.lib>$<$<NOT:$<BOOL:${WIN32}>>:${_IMPORT_PREFIX}/lib/libstaticXMPCore.a>"
+  IMPORTED_LOCATION_MINSIZEREL "$<$<BOOL:${WIN32}>:${_IMPORT_PREFIX}/lib/staticXMPCore.lib>$<$<NOT:$<BOOL:${WIN32}>>:${_IMPORT_PREFIX}/lib/libstaticXMPCore.a>"
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+)
+target_link_libraries(adobe::XMPCore INTERFACE expat::expat)
+
+add_library(adobe::XMPFiles STATIC IMPORTED)
+set_target_properties(adobe::XMPFiles PROPERTIES
+  IMPORTED_CONFIGURATIONS "DEBUG;RELEASE;RELWITHDEBINFO;MINSIZEREL"
+  IMPORTED_LOCATION_DEBUG "$<$<BOOL:${WIN32}>:${_IMPORT_PREFIX}/debug/lib/staticXMPFiles.lib>$<$<NOT:$<BOOL:${WIN32}>>:${_IMPORT_PREFIX}/debug/lib/libstaticXMPFiles.a>"
+  IMPORTED_LOCATION_RELEASE "$<$<BOOL:${WIN32}>:${_IMPORT_PREFIX}/lib/staticXMPFiles.lib>$<$<NOT:$<BOOL:${WIN32}>>:${_IMPORT_PREFIX}/lib/libstaticXMPFiles.a>"
+  IMPORTED_LOCATION_RELWITHDEBINFO "$<$<BOOL:${WIN32}>:${_IMPORT_PREFIX}/lib/staticXMPFiles.lib>$<$<NOT:$<BOOL:${WIN32}>>:${_IMPORT_PREFIX}/lib/libstaticXMPFiles.a>"
+  IMPORTED_LOCATION_MINSIZEREL "$<$<BOOL:${WIN32}>:${_IMPORT_PREFIX}/lib/staticXMPFiles.lib>$<$<NOT:$<BOOL:${WIN32}>>:${_IMPORT_PREFIX}/lib/libstaticXMPFiles.a>"
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+)
+target_link_libraries(adobe::XMPFiles INTERFACE adobe::XMPCore expat::expat ZLIB::ZLIB)
