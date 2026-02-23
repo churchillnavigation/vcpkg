@@ -1,0 +1,351 @@
+diff -uNr a/XMPCore/build/CMakeLists.txt b/XMPCore/build/CMakeLists.txt
+--- a/XMPCore/build/CMakeLists.txt	2025-03-28 09:49:20.000000000 +0000
++++ b/XMPCore/build/CMakeLists.txt	2026-02-23 22:10:54.021214274 +0000
+@@ -54,7 +54,7 @@
+ endif()
+ 
+ set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
+-set(TP_EXPAT_PATH "${PROJECT_ROOT}/../../third-party/expat/lib/")
++find_package(EXPAT CONFIG REQUIRED)
+ 
+ # ==============================================================================
+ # Project specific config starts here
+@@ -89,4 +89,3 @@
+ include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/XMPCore/build/CMakeListsCommon.txt)
+ 
+ 
+-
+diff -uNr a/XMPCore/build/CMakeListsCommon.txt b/XMPCore/build/CMakeListsCommon.txt
+--- a/XMPCore/build/CMakeListsCommon.txt	2025-03-28 09:49:20.000000000 +0000
++++ b/XMPCore/build/CMakeListsCommon.txt	2026-02-23 22:11:45.196334393 +0000
+@@ -89,16 +89,8 @@
+ 
+ file (GLOB ZUID_SOURCE_FILES ${TP_ZUID_PATH}/*.cpp)
+ list (APPEND THIRDPARTY_SOURCE_FILES
+-	${TP_EXPAT_PATH}/xmlparse.c
+-	${TP_EXPAT_PATH}/xmlrole.c
+-	${TP_EXPAT_PATH}/xmltok.c
+ 	${ZUID_SOURCE_FILES}
+ 	)
+-if(WIN32)
+-	list (APPEND THIRDPARTY_SOURCE_FILES ${RESOURCE_ROOT}/win/expat_config.h)
+-else()
+-	list (APPEND THIRDPARTY_SOURCE_FILES ${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT}/expat_config.h)
+-endif()
+ source_group("Source Files\\Third Party" FILES ${THIRDPARTY_SOURCE_FILES})
+ 
+ list (APPEND UTILITY_SOURCE_FILES
+@@ -155,7 +147,6 @@
+ # include directories
+ include_directories(${XMPROOT_DIR})
+ include_directories(${XMPROOT_DIR}/public/include)
+-include_directories(${XMPROOT_DIR}/third-party/expat/public/lib)
+ include_directories(${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT})
+ if(UNIX AND NOT APPLE AND NOT ${XMP_BUILD_STATIC})
+ include_directories(${XMPROOT_DIR}/XMPCore/third-party/boost)
+@@ -231,6 +222,8 @@
+ #set the output name
+ set_target_properties(${TARGET_NAME} PROPERTIES OUTPUT_NAME  ${XMPCORE_LIB})
+ 
++target_link_libraries(${TARGET_NAME} expat::expat)
++
+ # ==============================================================================
+ # Link dependencies
+ set(FRAMEWORK_LIST "ALL:CoreFoundation" "Mac:CoreServices")
+@@ -292,4 +285,3 @@
+ message (STATUS "===========================================================================")
+ message (STATUS " OUTPUT_DIR = ${OUTPUT_DIR}")
+ 
+-
+diff -uNr a/XMPCore/source/ExpatAdapter.cpp b/XMPCore/source/ExpatAdapter.cpp
+--- a/XMPCore/source/ExpatAdapter.cpp	2025-03-28 09:49:20.000000000 +0000
++++ b/XMPCore/source/ExpatAdapter.cpp	2026-02-23 22:11:58.248373341 +0000
+@@ -12,7 +12,7 @@
+ #include "source/ExpatAdapter.hpp"
+ #include "XMPCore/source/XMPMeta.hpp"
+ 
+-#include "third-party/expat/lib/expat.h"
++#include <expat.h>
+ #include <string.h>
+ 
+ using namespace std;
+diff -uNr a/XMPFiles/build/CMakeLists.txt b/XMPFiles/build/CMakeLists.txt
+--- a/XMPFiles/build/CMakeLists.txt	2025-03-28 09:49:20.000000000 +0000
++++ b/XMPFiles/build/CMakeLists.txt	2026-02-23 22:12:12.963404314 +0000
+@@ -48,7 +48,8 @@
+ 
+ 
+ set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
+-set(TP_EXPAT_PATH "${PROJECT_ROOT}/../../third-party/expat/lib/")
++find_package(EXPAT CONFIG REQUIRED)
++find_package(ZLIB REQUIRED)
+ set(LIB_ADOBEXMP XMPCore)
+ 
+ if(ANDROID)
+@@ -86,4 +87,4 @@
+ endif(UNIX)
+ 
+ 
+-include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/XMPFiles/build/CMakeListsCommon.txt)
+\ No newline at end of file
++include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/XMPFiles/build/CMakeListsCommon.txt)
+diff -uNr a/XMPFiles/build/CMakeListsCommon.txt b/XMPFiles/build/CMakeListsCommon.txt
+--- a/XMPFiles/build/CMakeListsCommon.txt	2025-03-28 09:49:20.000000000 +0000
++++ b/XMPFiles/build/CMakeListsCommon.txt	2026-02-23 22:12:58.872496821 +0000
+@@ -65,20 +65,6 @@
+ 	)
+ source_group("Header Files\\Public Headers" FILES ${PUBLIC_HEADER})
+ 
+-file (GLOB HEADERFILES_THIRDPARTY_ZLIB ${XMPROOT_DIR}/third-party/zlib/*.h)
+-list (REMOVE_ITEM HEADERFILES_THIRDPARTY_ZLIB
+-	${CMAKE_CURRENT_SOURCE_DIR}/${XMPROOT_DIR}/third-party/zlib/gzguts.h
+-	)
+-source_group("Header Files\\ThirdParty\\zlib" FILES ${HEADERFILES_THIRDPARTY_ZLIB})
+-
+-list (APPEND FILES_THIRDPARTY_EXPAT
+-	${TP_EXPAT_PATH}/xmlparse.c
+-	${TP_EXPAT_PATH}/xmlrole.c
+-	${TP_EXPAT_PATH}/xmltok.c
+-	)
+-list (APPEND FILES_THIRDPARTY_EXPAT ${RESOURCE_ROOT}/../../XMPCore/resource/${XMP_PLATFORM_SHORT}/expat_config.h)
+-source_group("Source Files\\ThirdParty\\expat" FILES ${FILES_THIRDPARTY_EXPAT})
+-
+ list (APPEND HEADERFILES
+ 	${XMPROOT_DIR}/source/Host_IO.hpp
+ 	${XMPROOT_DIR}/source/XIO.hpp
+@@ -174,21 +160,6 @@
+ source_group("Source Files\\Public\\XMPCore" FILES ${PUBLIC_XMPCORE_CLIENTGLUE_FILES})
+ endif()
+ #endif()
+-list (APPEND HEADERFILES_THIRDPARTY_ZLIB
+-	${XMPROOT_DIR}/third-party/zlib/adler32.c
+-	${XMPROOT_DIR}/third-party/zlib/compress.c
+-	${XMPROOT_DIR}/third-party/zlib/crc32.c
+-	${XMPROOT_DIR}/third-party/zlib/deflate.c
+-	${XMPROOT_DIR}/third-party/zlib/infback.c
+-	${XMPROOT_DIR}/third-party/zlib/inffast.c
+-	${XMPROOT_DIR}/third-party/zlib/inflate.c
+-	${XMPROOT_DIR}/third-party/zlib/inftrees.c
+-	${XMPROOT_DIR}/third-party/zlib/trees.c
+-	${XMPROOT_DIR}/third-party/zlib/uncompr.c
+-	${XMPROOT_DIR}/third-party/zlib/zutil.c
+-	)
+-source_group("Source Files\\ThirdParty\\zlib" FILES ${HEADERFILES_THIRDPARTY_ZLIB})
+-
+ list(APPEND SOURCE_FILES
+ 	${INTERNAL_HEADER_COMMONCODE_NMDS}
+ 	${INTERNAL_HEADER_COMMONCODE}
+@@ -200,7 +171,6 @@
+ 	${INTERNAL_HEADER_PLUGINHANDLER}
+ 	${PUBLIC_HEADER_CLIENTGLUE}
+ 	${PUBLIC_HEADER}
+-	${HEADERFILES_THIRDPARTY_ZLIB}
+ 	${HEADERFILES}
+ 	${RESOURCE_FILES}
+ 	${SOURCEFILES_COMMONCODE_NMDS}
+@@ -213,8 +183,6 @@
+ 	${SOURCEFILES_PLUGINHANDLER}
+ 	${PUBLIC_XMPCOMMON_CLIENTGLUE_FILES}
+ 	${PUBLIC_XMPCORE_CLIENTGLUE_FILES}
+-	${HEADERFILES_THIRDPARTY_ZLIB}
+-	${FILES_THIRDPARTY_EXPAT}
+ 	)
+ 
+ # include directories
+@@ -222,8 +190,6 @@
+ include_directories(${XMPROOT_DIR}/public/include)
+ include_directories(${XMPROOT_DIR}/public/include/client-glue)
+ 
+-include_directories(${TP_EXPAT_PATH})
+-include_directories(${XMPROOT_DIR}/third-party/expat/public/lib)
+ include_directories(${XMPROOT_DIR}/XMPFilesPlugins/api/source)
+ include_directories(${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT})
+ 
+@@ -293,12 +259,16 @@
+ 		${TARGET_NAME}
+ 		${LIB_ADOBEXMP}
+ 		${XMP_PLATFORM_LINK}
++		expat::expat
++		ZLIB::ZLIB
+ 	)
+ else(WIN32)
+ 	if(UNIX AND NOT APPLE)
+ 		target_link_libraries(
+ 			${TARGET_NAME}
+             ${LIB_ADOBEXMP}
++			expat::expat
++			ZLIB::ZLIB
+ 		)
+ 	endif()
+ endif()
+diff -uNr a/XMPFiles/source/FileHandlers/SVG_Handler.hpp b/XMPFiles/source/FileHandlers/SVG_Handler.hpp
+--- a/XMPFiles/source/FileHandlers/SVG_Handler.hpp	2025-03-28 09:49:20.000000000 +0000
++++ b/XMPFiles/source/FileHandlers/SVG_Handler.hpp	2026-02-23 22:13:06.860518261 +0000
+@@ -25,7 +25,7 @@
+ #include "XMPFiles/source/XMPFiles_Impl.hpp"
+ #include "XMPFiles/source/FormatSupport/SVG_Adapter.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
+ 
+ extern XMPFileHandler* SVG_MetaHandlerCTor( XMPFiles* parent );
+ 
+diff -uNr a/XMPFiles/source/FileHandlers/UCF_Handler.cpp b/XMPFiles/source/FileHandlers/UCF_Handler.cpp
+--- a/XMPFiles/source/FileHandlers/UCF_Handler.cpp	2025-03-28 09:49:20.000000000 +0000
++++ b/XMPFiles/source/FileHandlers/UCF_Handler.cpp	2026-02-23 22:13:14.371542802 +0000
+@@ -18,7 +18,7 @@
+ 
+ #include "XMPFiles/source/FileHandlers/UCF_Handler.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
+ 
+ #include <time.h>
+ 
+diff -uNr a/XMPFiles/source/FormatSupport/SVG_Adapter.cpp b/XMPFiles/source/FormatSupport/SVG_Adapter.cpp
+--- a/XMPFiles/source/FormatSupport/SVG_Adapter.cpp	2025-03-28 09:49:20.000000000 +0000
++++ b/XMPFiles/source/FormatSupport/SVG_Adapter.cpp	2026-02-23 22:13:28.842577463 +0000
+@@ -17,7 +17,7 @@
+ 
+ #include "XMPFiles/source/FormatSupport/SVG_Adapter.hpp"
+ 
+-#include "third-party/expat/lib/expat.h"
++#include <expat.h>
+ #include <string.h>
+ 
+ using namespace std;
+diff -uNr a/XMPFiles/source/FormatSupport/SWF_Support.cpp b/XMPFiles/source/FormatSupport/SWF_Support.cpp
+--- a/XMPFiles/source/FormatSupport/SWF_Support.cpp	2025-03-28 09:49:20.000000000 +0000
++++ b/XMPFiles/source/FormatSupport/SWF_Support.cpp	2026-02-23 22:13:38.110600256 +0000
+@@ -18,7 +18,7 @@
+ 
+ #include "XMPFiles/source/FormatSupport/SWF_Support.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
+ 
+ // =================================================================================================
+ 
+diff -uNr a/XMPFiles/source/FormatSupport/SWF_Support.hpp b/XMPFiles/source/FormatSupport/SWF_Support.hpp
+--- a/XMPFiles/source/FormatSupport/SWF_Support.hpp	2025-03-28 09:49:20.000000000 +0000
++++ b/XMPFiles/source/FormatSupport/SWF_Support.hpp	2026-02-23 22:13:42.632610213 +0000
+@@ -17,7 +17,7 @@
+ 
+ #include "XMPFiles/source/XMPFiles_Impl.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include <zlib.h>
+ 
+ // =================================================================================================
+ 
+diff -uNr a/build/ProductConfig.cmake b/build/ProductConfig.cmake
+--- a/build/ProductConfig.cmake	2025-03-28 09:49:20.000000000 +0000
++++ b/build/ProductConfig.cmake	2026-02-23 22:14:08.596669107 +0000
+@@ -104,73 +104,37 @@
+ 	endif()
+ 
+     else()
++		if(NOT DEFINED CMAKE_CL_64 AND (CMAKE_SIZEOF_VOID_P EQUAL 8))
++			set(CMAKE_CL_64 ON)
++		endif()
++
+ 		if(NOT CMAKE_CROSSCOMPILING)
+-			if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+-				# running on 64bit machine
++			if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+ 				set(XMP_EXTRA_BUILDMACHINE	"Buildmachine is 64bit")
+ 			else()
+-				# running on 32bit machine
+ 				set(XMP_EXTRA_BUILDMACHINE	"Buildmachine is 32bit")
+ 			endif()
+-
+-			if(CMAKE_CL_64)
+-				set(XMP_EXTRA_COMPILE_FLAGS "-m64")
+-				set(XMP_EXTRA_LINK_FLAGS "-m64")
+-				if(CENTOS)	
+-					set(XMP_PLATFORM_FOLDER "i80386linux_x64_centos") # add XMP_BUILDMODE_DIR to follow what other platforms do
+-					set(XMP_GCC_LIBPATH /opt/llvm/lib)
+-				else()
+-				set(XMP_PLATFORM_FOLDER "i80386linux_x64") # add XMP_BUILDMODE_DIR to follow what other platforms do
+-				set(XMP_GCC_LIBPATH /user/unicore/i80386linux_x64/compiler/gcc4.8.2/linux3.10_64/lib64)
+-				endif()	
+-			else()
+-				set(XMP_EXTRA_LINK_FLAGS "-m32 -mtune=i686")
+-				if(CENTOS)	
+-					set(XMP_GCC_LIBPATH /opt/llvm/lib)
+-					set(XMP_PLATFORM_FOLDER "i80386linux_centos") # add XMP_BUILDMODE_DIR to follow what other platforms do
+-				else()
+-				set(XMP_PLATFORM_FOLDER "i80386linux") # add XMP_BUILDMODE_DIR to follow what other platforms do
+-				set(XMP_GCC_LIBPATH /user/unicore/i80386linux/compiler/gcc4.8.2/linux3.10_32/lib)
+-			endif()
+-			endif()
+ 		else()
+-			# running toolchain
+-			if(CMAKE_CL_64)
+-				set(XMP_EXTRA_COMPILE_FLAGS "-m64")
+-				set(XMP_EXTRA_LINK_FLAGS "-m64")
+-				
+-				if(CENTOS)	
+-					set(XMP_GCC_LIBPATH /opt/llvm/lib)
+-					set(XMP_PLATFORM_FOLDER "i80386linux_x64_centos") # add XMP_BUILDMODE_DIR to follow what other platforms do
+-				else()
+-				set(XMP_PLATFORM_FOLDER "i80386linux_x64") # add XMP_BUILDMODE_DIR to follow what other platforms do
+-				set(XMP_GCC_LIBPATH /user/unicore/i80386linux_x64/compiler/gcc4.8.2/linux3.10_64/lib64)
+-				endif()	
+-			else()
+-               	set(XMP_EXTRA_COMPILE_FLAGS "-m32 -mtune=i686")
+-				set(XMP_EXTRA_LINK_FLAGS "-m32")
+-				if(CENTOS)	
+-					set(XMP_GCC_LIBPATH /opt/llvm/lib)
+-					set(XMP_PLATFORM_FOLDER "i80386linux_centos") # add XMP_BUILDMODE_DIR to follow what other platforms do
+-				else()
+-				set(XMP_PLATFORM_FOLDER "i80386linux") # add XMP_BUILDMODE_DIR to follow what other platforms do
+-				set(XMP_GCC_LIBPATH /user/unicore/i80386linux/compiler/gcc4.8.2/linux3.10_32/lib)
+-			endif()
+-			endif()
+-
+ 			set(XMP_EXTRA_BUILDMACHINE	"Cross compiling")
+ 		endif()
++
++		if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^(x86_64|amd64|AMD64)$")
++			set(XMP_PLATFORM_FOLDER "i80386linux_x64") # add XMP_BUILDMODE_DIR to follow what other platforms do
++		elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^(aarch64|arm64)$")
++			set(XMP_PLATFORM_FOLDER "aarch64linux")
++		else()
++			set(XMP_PLATFORM_FOLDER "i80386linux") # add XMP_BUILDMODE_DIR to follow what other platforms do
++		endif()
++
+ 		set(XMP_PLATFORM_VERSION "linux3.10") # add XMP_BUILDMODE_DIR to follow what other platforms do
+ 
+ 		add_definitions(-DUNIX_ENV=1)
+ 		# Linux -------------------------------------------
+ 		set(XMP_PLATFORM_SHORT "linux")
+-		#gcc path is not set correctly
+-		#set(CMAKE_C_COMPILER "/user/unicore/i80386linux/compiler/gcc4.4.4/linux2.6_32/bin/gcc")
+-		#set(CMAKE_CXX_COMPILER "/user/unicore/i80386linux/compiler/gcc4.4.4/linux2.6_32/bin/gcc")
+-		#set(XMP_GCC_LIBPATH /user/unicore/i80386linux/compiler/gcc4.4.4/linux2.6_32/lib)
++		set(XMP_EXTRA_COMPILE_FLAGS "")
++		set(XMP_EXTRA_LINK_FLAGS "")
+ 
+-   		set(XMP_PLATFORM_LINK "-z defs -Xlinker -Bsymbolic -Wl,--no-undefined  ${XMP_EXTRA_LINK_FLAGS} ${XMP_TOOLCHAIN_LINK_FLAGS} -lrt -Wl,--no-as-needed -ldl -lpthread ${XMP_GCC_LIBPATH}/libssp.a")
++   		set(XMP_PLATFORM_LINK "-z defs -Xlinker -Bsymbolic -Wl,--no-undefined  ${XMP_EXTRA_LINK_FLAGS} ${XMP_TOOLCHAIN_LINK_FLAGS} -lrt -ldl -lpthread")
+ if(CENTOS)
+ 		set(XMP_PLATFORM_LINK " -lc++abi ${XMP_PLATFORM_LINK}")
+ endif()
+@@ -214,4 +178,3 @@
+ 	set(XMP_PLATFORM_LINK_WIN "${XMP_WIN32_LINK_EXTRAFLAGS} /MAP")
+ endif ()
+ 
+-
+diff -uNr a/source/EndianUtils.hpp b/source/EndianUtils.hpp
+--- a/source/EndianUtils.hpp	2025-03-28 09:49:20.000000000 +0000
++++ b/source/EndianUtils.hpp	2026-02-23 22:14:13.238679818 +0000
+@@ -46,6 +46,8 @@
+ 	 #ifndef kBigEndianHost	// Typically in the makefile for generic UNIX.
+ 		#if __GNUC__ && (__i386__ || __x86_64__)
+ 			#define kBigEndianHost 0
++		#elif __GNUC__ && (__aarch64__ || __arm64__)
++			#define kBigEndianHost 0
+ 		#elif __GNUC__ && (__sparc__)
+ 			#define kBigEndianHost 1
+ 			#define kLittleEndianHost 0

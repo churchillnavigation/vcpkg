@@ -1,0 +1,7 @@
+Basic usage (static libs only):
+  find_package(adobe-xmp-toolkit-sdk CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE adobe::XMPFiles adobe::XMPCore)
+
+Headers live in <XMP*>. You must define TXMP_STRING_TYPE (e.g. std::string)
+in your translation unit and include XMP.incl_cpp exactly once to instantiate
+templates. See SDK docs for details.

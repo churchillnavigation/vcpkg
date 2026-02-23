@@ -1,0 +1,93 @@
+include_guard(GLOBAL)
+
+if(TARGET adobe::XMPCore)
+  return()
+endif()
+
+get_filename_component(_IMPORT_PREFIX "${CMAKE_CURRENT_LIST_FILE}" PATH) # share/adobe-xmp-toolkit-sdk
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)          # share
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)          # package root
+
+set(_IS_STATIC FALSE)
+if("@VCPKG_LIBRARY_LINKAGE@" STREQUAL "static")
+  set(_IS_STATIC TRUE)
+endif()
+
+if(WIN32)
+  if(_IS_STATIC)
+    set(_XMPCORE_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/lib/staticXMPCore.lib")
+    set(_XMPCORE_LOC_RELEASE "${_IMPORT_PREFIX}/lib/staticXMPCore.lib")
+    set(_XMPFILES_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/lib/staticXMPFiles.lib")
+    set(_XMPFILES_LOC_RELEASE "${_IMPORT_PREFIX}/lib/staticXMPFiles.lib")
+  else()
+    set(_XMPCORE_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/bin/XMPCore.dll")
+    set(_XMPCORE_LOC_RELEASE "${_IMPORT_PREFIX}/bin/XMPCore.dll")
+    set(_XMPCORE_IMPLIB_DEBUG   "${_IMPORT_PREFIX}/debug/lib/XMPCore.lib")
+    set(_XMPCORE_IMPLIB_RELEASE "${_IMPORT_PREFIX}/lib/XMPCore.lib")
+
+    set(_XMPFILES_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/bin/XMPFiles.dll")
+    set(_XMPFILES_LOC_RELEASE "${_IMPORT_PREFIX}/bin/XMPFiles.dll")
+    set(_XMPFILES_IMPLIB_DEBUG   "${_IMPORT_PREFIX}/debug/lib/XMPFiles.lib")
+    set(_XMPFILES_IMPLIB_RELEASE "${_IMPORT_PREFIX}/lib/XMPFiles.lib")
+  endif()
+elseif(APPLE)
+  if(_IS_STATIC)
+    set(_XMPCORE_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/lib/libstaticXMPCore.a")
+    set(_XMPCORE_LOC_RELEASE "${_IMPORT_PREFIX}/lib/libstaticXMPCore.a")
+    set(_XMPFILES_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/lib/libstaticXMPFiles.a")
+    set(_XMPFILES_LOC_RELEASE "${_IMPORT_PREFIX}/lib/libstaticXMPFiles.a")
+  else()
+    set(_XMPCORE_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/lib/libXMPCore.dylib")
+    set(_XMPCORE_LOC_RELEASE "${_IMPORT_PREFIX}/lib/libXMPCore.dylib")
+    set(_XMPFILES_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/lib/libXMPFiles.dylib")
+    set(_XMPFILES_LOC_RELEASE "${_IMPORT_PREFIX}/lib/libXMPFiles.dylib")
+  endif()
+else()
+  if(_IS_STATIC)
+    set(_XMPCORE_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/lib/libstaticXMPCore.a")
+    set(_XMPCORE_LOC_RELEASE "${_IMPORT_PREFIX}/lib/libstaticXMPCore.a")
+    set(_XMPFILES_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/lib/libstaticXMPFiles.a")
+    set(_XMPFILES_LOC_RELEASE "${_IMPORT_PREFIX}/lib/libstaticXMPFiles.a")
+  else()
+    set(_XMPCORE_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/lib/libXMPCore.so")
+    set(_XMPCORE_LOC_RELEASE "${_IMPORT_PREFIX}/lib/libXMPCore.so")
+    set(_XMPFILES_LOC_DEBUG   "${_IMPORT_PREFIX}/debug/lib/libXMPFiles.so")
+    set(_XMPFILES_LOC_RELEASE "${_IMPORT_PREFIX}/lib/libXMPFiles.so")
+  endif()
+endif()
+
+add_library(adobe::XMPCore @VCPKG_LIBRARY_LINKAGE@ IMPORTED)
+set_target_properties(adobe::XMPCore PROPERTIES
+  IMPORTED_LOCATION_DEBUG "${_XMPCORE_LOC_DEBUG}"
+  IMPORTED_LOCATION_RELEASE "${_XMPCORE_LOC_RELEASE}"
+  IMPORTED_LOCATION_RELWITHDEBINFO "${_XMPCORE_LOC_RELEASE}"
+  IMPORTED_LOCATION_MINSIZEREL "${_XMPCORE_LOC_RELEASE}"
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+)
+if(WIN32 AND NOT _IS_STATIC)
+  set_target_properties(adobe::XMPCore PROPERTIES
+    IMPORTED_IMPLIB_DEBUG "${_XMPCORE_IMPLIB_DEBUG}"
+    IMPORTED_IMPLIB_RELEASE "${_XMPCORE_IMPLIB_RELEASE}"
+    IMPORTED_IMPLIB_RELWITHDEBINFO "${_XMPCORE_IMPLIB_RELEASE}"
+    IMPORTED_IMPLIB_MINSIZEREL "${_XMPCORE_IMPLIB_RELEASE}"
+  )
+endif()
+target_link_libraries(adobe::XMPCore INTERFACE expat::expat)
+
+add_library(adobe::XMPFiles @VCPKG_LIBRARY_LINKAGE@ IMPORTED)
+set_target_properties(adobe::XMPFiles PROPERTIES
+  IMPORTED_LOCATION_DEBUG "${_XMPFILES_LOC_DEBUG}"
+  IMPORTED_LOCATION_RELEASE "${_XMPFILES_LOC_RELEASE}"
+  IMPORTED_LOCATION_RELWITHDEBINFO "${_XMPFILES_LOC_RELEASE}"
+  IMPORTED_LOCATION_MINSIZEREL "${_XMPFILES_LOC_RELEASE}"
+  INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+)
+if(WIN32 AND NOT _IS_STATIC)
+  set_target_properties(adobe::XMPFiles PROPERTIES
+    IMPORTED_IMPLIB_DEBUG "${_XMPFILES_IMPLIB_DEBUG}"
+    IMPORTED_IMPLIB_RELEASE "${_XMPFILES_IMPLIB_RELEASE}"
+    IMPORTED_IMPLIB_RELWITHDEBINFO "${_XMPFILES_IMPLIB_RELEASE}"
+    IMPORTED_IMPLIB_MINSIZEREL "${_XMPFILES_IMPLIB_RELEASE}"
+  )
+endif()
+target_link_libraries(adobe::XMPFiles INTERFACE adobe::XMPCore expat::expat ZLIB::ZLIB)
