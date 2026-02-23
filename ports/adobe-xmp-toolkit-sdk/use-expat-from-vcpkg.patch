@@ -56,7 +56,7 @@ diff -Naur XMP-Toolkit-SDK-2025.03/XMPCore/build/CMakeLists.txt XMP-Toolkit-SDK-
 -set(XMP_THIS_PROJECT_RELATIVEPATH "../..")
 +set(PRODUCT_NAME XMPCore)
 +
-+set(PROJECT_ROOT ../../..)
++set(PROJECT_ROOT ${CMAKE_SOURCE_DIR}/..)
 +
 +set(XMP_THIS_PROJECT_RELATIVEPATH "../../..")
 +

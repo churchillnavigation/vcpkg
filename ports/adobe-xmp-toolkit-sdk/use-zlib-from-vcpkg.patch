@@ -1,11 +1,12 @@
 diff -Naur original/XMPFiles/build/CMakeLists.txt modified/XMPFiles/build/CMakeLists.txt
 --- a/XMPFiles/build/CMakeLists.txt	2026-02-23 21:08:00.745470043 +0000
 +++ b/XMPFiles/build/CMakeLists.txt	2026-02-23 21:08:08.816452531 +0000
-@@ -46,6 +46,7 @@
+@@ -46,6 +46,8 @@
  
  include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/build/XMP_Config.cmake)
  
 +find_package(ZLIB REQUIRED)
++set(PROJECT_ROOT ${CMAKE_SOURCE_DIR}/..)
  
  set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
  set(TP_EXPAT_PATH "${PROJECT_ROOT}/../../third-party/expat/lib/")
