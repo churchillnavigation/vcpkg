@@ -343,17 +343,3 @@ diff -Naur XMP-Toolkit-SDK-orig/build/ProductConfig.cmake XMP-Toolkit-SDK-patche
  endif()
  		set(XMP_SHARED_COMPILE_DEBUG_FLAGS " ")
  		set(XMP_SHARED_COMPILE_RELEASE_FLAGS "-fwrapv ")
-diff --git a/source/EndianUtils.hpp b/source/EndianUtils.hpp
---- a/source/EndianUtils.hpp
-+++ b/source/EndianUtils.hpp
-@@ -47,6 +47,8 @@
- #if __GNUC__ && (__i386__ || __x86_64__)
- #define kBigEndianHost 0
-+#elif __GNUC__ && (__aarch64__ || __arm64__)
-+#define kBigEndianHost 0
- #elif __GNUC__ && (__sparc__)
- #define kBigEndianHost 1
- #define kLittleEndianHost 0
- #else
- #error "Must define kBigEndianHost as 0 or 1 in the makefile."
- #endif

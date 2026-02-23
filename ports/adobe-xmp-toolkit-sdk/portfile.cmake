@@ -8,6 +8,13 @@ vcpkg_from_github(
         use-vcpkg-dependencies.patch
 )
 
+# Add aarch64/arm64 endianness detection to EndianUtils.hpp
+vcpkg_replace_string(
+    "${SOURCE_PATH}/source/EndianUtils.hpp"
+    "#if __GNUC__ && (__i386__ || __x86_64__)\n\t\t\t#define kBigEndianHost 0"
+    "#if __GNUC__ && (__i386__ || __x86_64__)\n\t\t\t#define kBigEndianHost 0\n\t\t#elif __GNUC__ && (__aarch64__ || __arm64__)\n\t\t\t#define kBigEndianHost 0"
+)
+
 # Set build type options
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     set(BUILD_STATIC_OPTION "-DXMP_BUILD_STATIC=ON")
