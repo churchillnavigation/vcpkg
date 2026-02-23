@@ -32,6 +32,10 @@
       "baseline": "8.0.5",
       "port-version": 0
     },
+    "adobe-xmp-toolkit-sdk": {
+      "baseline": "2025.03",
+      "port-version": 0
+    },
     "acl": {
       "baseline": "2.3.2",
       "port-version": 0
