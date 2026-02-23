@@ -62,11 +62,6 @@ configure_file("${CMAKE_CURRENT_LIST_DIR}/${PORT}Targets.cmake.in" "${_share_dir
 configure_file("${CMAKE_CURRENT_LIST_DIR}/${PORT}Config.cmake.in" "${_share_dir}/${PORT}Config.cmake" @ONLY)
 
 # usage
-file(WRITE "${_share_dir}/usage" "Basic usage (static libs only):\n")
-file(APPEND "${_share_dir}/usage" "  find_package(adobe-xmp-toolkit-sdk CONFIG REQUIRED)\n")
-file(APPEND "${_share_dir}/usage" "  target_link_libraries(main PRIVATE adobe::XMPFiles adobe::XMPCore)\n\n")
-file(APPEND "${_share_dir}/usage" "Headers live in <XMP*>. You must define TXMP_STRING_TYPE (e.g. std::string)\n")
-file(APPEND "${_share_dir}/usage" "in your translation unit and include XMP.incl_cpp exactly once to instantiate\n")
-file(APPEND "${_share_dir}/usage" "templates. See SDK docs for details.\n")
+configure_file("${CMAKE_CURRENT_LIST_DIR}/usage.in" "${_share_dir}/usage" @ONLY)
 
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")
