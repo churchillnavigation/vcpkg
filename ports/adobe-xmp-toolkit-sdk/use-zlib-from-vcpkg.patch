@@ -182,18 +182,23 @@ diff -Naur XMP-Toolkit-SDK-2025.03/XMPFiles/build/CMakeListsCommon.txt XMP-Toolk
  
  file (GLOB SOURCEFILES_FILEHANDLERS ${SOURCE_ROOT}/FileHandlers/*.cpp)
  list (APPEND SOURCEFILES_FILEHANDLERS
-@@ -174,7 +140,6 @@
+@@ -174,19 +140,6 @@
  source_group("Source Files\\Public\\XMPCore" FILES ${PUBLIC_XMPCORE_CLIENTGLUE_FILES})
  endif()
  #endif()
 -list (APPEND HEADERFILES_THIRDPARTY_ZLIB
- 	${XMPROOT_DIR}/third-party/zlib/adler32.c
- 	${XMPROOT_DIR}/third-party/zlib/compress.c
- 	${XMPROOT_DIR}/third-party/zlib/crc32.c
-@@ -187,7 +152,6 @@
- 	${XMPROOT_DIR}/third-party/zlib/uncompr.c
- 	${XMPROOT_DIR}/third-party/zlib/zutil.c
- 	)
+-	${XMPROOT_DIR}/third-party/zlib/adler32.c
+-	${XMPROOT_DIR}/third-party/zlib/compress.c
+-	${XMPROOT_DIR}/third-party/zlib/crc32.c
+-	${XMPROOT_DIR}/third-party/zlib/deflate.c
+-	${XMPROOT_DIR}/third-party/zlib/infback.c
+-	${XMPROOT_DIR}/third-party/zlib/inffast.c
+-	${XMPROOT_DIR}/third-party/zlib/inflate.c
+-	${XMPROOT_DIR}/third-party/zlib/inftrees.c
+-	${XMPROOT_DIR}/third-party/zlib/trees.c
+-	${XMPROOT_DIR}/third-party/zlib/uncompr.c
+-	${XMPROOT_DIR}/third-party/zlib/zutil.c
+-	)
 -source_group("Source Files\\ThirdParty\\zlib" FILES ${HEADERFILES_THIRDPARTY_ZLIB})
  
  list(APPEND SOURCE_FILES
