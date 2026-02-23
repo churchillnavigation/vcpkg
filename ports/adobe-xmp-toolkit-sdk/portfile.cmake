@@ -5,7 +5,9 @@ vcpkg_from_github(
     SHA512 b2282b53b954b3e0b173733c80f3e5580cc7ee7a0b54117516dc396d538c33837dc359385773ddd639bf70a7497e1d625de3b93b5b80ef189ff894a2dcba7763
     HEAD_REF main
     PATCHES
-        use-vcpkg-dependencies.patch
+        use-expat-from-vcpkg.patch
+        use-zlib-from-vcpkg.patch
+        fix-linux-build-system.patch
         fix-aarch64-endianness.patch
 )
 

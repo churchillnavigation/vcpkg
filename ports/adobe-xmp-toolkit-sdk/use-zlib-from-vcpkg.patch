@@ -1,0 +1,301 @@
+diff -Naur XMP-Toolkit-SDK-2025.03/XMPFiles/build/CMakeLists.txt XMP-Toolkit-SDK-zlib/XMPFiles/build/CMakeLists.txt
+--- XMP-Toolkit-SDK-2025.03/XMPFiles/build/CMakeLists.txt	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-zlib/XMPFiles/build/CMakeLists.txt	2026-02-23 19:49:14.459290693 +0000
+@@ -1,89 +1,59 @@
+-# =================================================================================================
+-# ADOBE SYSTEMS INCORPORATED
+-# Copyright 2013 Adobe Systems Incorporated
+-# All Rights Reserved
+-#
+-# NOTICE: Adobe permits you to use, modify, and distribute this file in accordance with the terms
+-# of the Adobe license agreement accompanying it.
+-# =================================================================================================
++cmake_minimum_required(VERSION 3.15.5)
+ 
+-# ==============================================================================
+-# define minimum cmake version
+-# For Android always build with make 3.6
+-if(ANDROID)
+-	cmake_minimum_required(VERSION 3.5.2)
+-else(ANDROID)
+-	cmake_minimum_required(VERSION 3.15.5)
+-endif(ANDROID)
+-
+-# Enable folder grouping of projects in IDEs
++# Enable folder grouping in generated project files
+ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+-set(CMAKE_C_IMPLICIT_LINK_DIRECTORIES "")
+-set(CMAKE_C_IMPLICIT_LINK_FRAMEWORK_DIRECTORIES "")
+ 
+-# ==============================================================================
+-# This project
++project(XMPFiles)
++
++set(TARGET_NAME XMPFilesStatic)
++if(NOT ${XMP_BUILD_STATIC})
+ set(TARGET_NAME XMPFiles)
+-if(CMAKE_CL_64)
+-	project(${TARGET_NAME}64)
+-else(CMAKE_CL_64)
+-	project(${TARGET_NAME})
+-endif(CMAKE_CL_64)
+-
+-set(STATIC_STR "Static")
+-if (XMP_BUILD_STATIC)
+-	set(TARGET_NAME "${TARGET_NAME}${STATIC_STR}")
+-	set(PROJECT_LABEL_STR "${TARGET_NAME}")
+-else(XMP_BUILD_STATIC)
+-	set(PROJECT_LABEL_STR "${TARGET_NAME}")
+-endif(XMP_BUILD_STATIC)
++endif()
++
++set(PRODUCT_NAME XMPFiles)
++
++set(PROJECT_ROOT ../../..)
++
++set(XMPROOT_DIR ${PROJECT_ROOT})
++
++set(XMP_THIS_PROJECT_RELATIVEPATH "../../..")
++
++set(SOURCE_ROOT ${PROJECT_ROOT}/source)
++set(RESOURCE_ROOT ${XMPROOT_DIR}/build)
++
++
++set(CMAKE_MODULE_PATH ${XMPROOT_DIR}/build)
++if(APPLE)
++include(CMakeMacros_Apple.cmake)
++endif()
+ 
+ # ==============================================================================
+-# Shared config
++# This project
+ # ==============================================================================
+-# setup some values before calling shared config
+-set(XMP_THIS_PROJECT_RELATIVEPATH "../..")
+ 
+ include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/build/XMP_Config.cmake)
+ 
+ 
++# Use vcpkg dependencies
++find_package(ZLIB REQUIRED)
+ set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
+-set(TP_EXPAT_PATH "${PROJECT_ROOT}/../../third-party/expat/lib/")
+ set(LIB_ADOBEXMP XMPCore)
+ 
+ if(ANDROID)
+-	set(LIB_ADOBEXMP libXMPCore.so)
++find_library(log-lib log)
++set(LIB_ADOBEXMP ${LIB_ADOBEXMP} ${log-lib})
++endif()
++
++include(${XMPROOT_DIR}/build/ProductConfig.cmake)
++
++add_definitions(-DBUILDING_XMPFILES_LIB=1)
++add_definitions(-DBUILDING_XMPFILES_AS_STATIC=1)
++if(NOT ${XMP_BUILD_STATIC})
++add_definitions(-DBUILDING_XMPFILES_AS_DYNAMIC=1)
+ endif()
+ 
+ # ==============================================================================
+-# platform specific config
++# Project specific config starts here
+ # ==============================================================================
+-if(UNIX)
+-	if(APPLE)
+-		# OSX -------------------------------------------
+-		if(XMP_BUILD_STATIC)
+-			set(XMPFILES_LIB "XMPFilesStatic")
+-		else()
+-			set(XMPFILES_LIB "XMPFiles")
+-		endif()
+-	else(APPLE)
+-		# Linux -------------------------------------------
+-		if(XMP_BUILD_STATIC)
+-			set(XMPFILES_LIB "staticXMPFiles")
+-		else()
+-			set(XMPFILES_LIB "XMPFiles")
+-		endif()
+-	endif(APPLE)
+-else(UNIX)
+-	if(WIN32)
+-		# Windows -------------------------------------------
+-		if(XMP_BUILD_STATIC)
+-			set(XMPFILES_LIB "XMPFilesStatic")
+-		else(XMP_BUILD_STATIC)
+-			set(XMPFILES_LIB "XMPFiles")
+-		endif()
+-	endif(WIN32)
+-endif(UNIX)
+-
+ 
+-include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/XMPFiles/build/CMakeListsCommon.txt)
+\ No newline at end of file
++include(CMakeListsCommon.txt)
+diff -Naur XMP-Toolkit-SDK-2025.03/XMPFiles/build/CMakeListsCommon.txt XMP-Toolkit-SDK-zlib/XMPFiles/build/CMakeListsCommon.txt
+--- XMP-Toolkit-SDK-2025.03/XMPFiles/build/CMakeListsCommon.txt	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-zlib/XMPFiles/build/CMakeListsCommon.txt	2026-02-23 19:49:24.261413675 +0000
+@@ -64,26 +64,6 @@
+ 	${XMPROOT_DIR}/public/include/XMP_Version.h
+ 	)
+ source_group("Header Files\\Public Headers" FILES ${PUBLIC_HEADER})
+-
+-file (GLOB HEADERFILES_THIRDPARTY_ZLIB ${XMPROOT_DIR}/third-party/zlib/*.h)
+-list (REMOVE_ITEM HEADERFILES_THIRDPARTY_ZLIB
+-	${CMAKE_CURRENT_SOURCE_DIR}/${XMPROOT_DIR}/third-party/zlib/gzguts.h
+-	)
+-source_group("Header Files\\ThirdParty\\zlib" FILES ${HEADERFILES_THIRDPARTY_ZLIB})
+-
+-list (APPEND FILES_THIRDPARTY_EXPAT
+-	${TP_EXPAT_PATH}/xmlparse.c
+-	${TP_EXPAT_PATH}/xmlrole.c
+-	${TP_EXPAT_PATH}/xmltok.c
+-	)
+-list (APPEND FILES_THIRDPARTY_EXPAT ${RESOURCE_ROOT}/../../XMPCore/resource/${XMP_PLATFORM_SHORT}/expat_config.h)
+-source_group("Source Files\\ThirdParty\\expat" FILES ${FILES_THIRDPARTY_EXPAT})
+-
+-list (APPEND HEADERFILES
+-	${XMPROOT_DIR}/source/Host_IO.hpp
+-	${XMPROOT_DIR}/source/XIO.hpp
+-	${XMPROOT_DIR}/source/IOUtils.hpp
+-	${XMPROOT_DIR}/source/XMPFiles_IO.hpp
+ 	)
+ source_group("Header Files" FILES ${HEADERFILES})
+ 
+@@ -106,20 +86,6 @@
+ 	${XMPROOT_DIR}/source/PerfUtils.cpp
+ 	${SOURCE_ROOT}/WXMPFiles.cpp
+ 	${XMPROOT_DIR}/source/XIO.cpp
+-	${XMPROOT_DIR}/source/IOUtils.cpp
+-	${XMPROOT_DIR}/source/XML_Node.cpp
+-	${XMPROOT_DIR}/source/XMP_LibUtils.cpp
+-	${XMPROOT_DIR}/source/XMP_ProgressTracker.cpp
+-	${SOURCE_ROOT}/XMPFiles.cpp
+-	${SOURCE_ROOT}/XMPFiles_Impl.cpp
+-	${XMPROOT_DIR}/source/XMPFiles_IO.cpp
+-	)
+-if(UNIX)
+-	list(APPEND SOURCEFILES_COMMONCODE ${XMPROOT_DIR}/source/Host_IO-POSIX.cpp)
+-else()
+-	list(APPEND SOURCEFILES_COMMONCODE ${XMPROOT_DIR}/source/Host_IO-Win.cpp)
+-endif()
+-source_group("Source Files\\Common Code" FILES ${SOURCEFILES_COMMONCODE})
+ 
+ file (GLOB SOURCEFILES_FILEHANDLERS ${SOURCE_ROOT}/FileHandlers/*.cpp)
+ list (APPEND SOURCEFILES_FILEHANDLERS
+@@ -174,7 +140,6 @@
+ source_group("Source Files\\Public\\XMPCore" FILES ${PUBLIC_XMPCORE_CLIENTGLUE_FILES})
+ endif()
+ #endif()
+-list (APPEND HEADERFILES_THIRDPARTY_ZLIB
+ 	${XMPROOT_DIR}/third-party/zlib/adler32.c
+ 	${XMPROOT_DIR}/third-party/zlib/compress.c
+ 	${XMPROOT_DIR}/third-party/zlib/crc32.c
+@@ -187,7 +152,6 @@
+ 	${XMPROOT_DIR}/third-party/zlib/uncompr.c
+ 	${XMPROOT_DIR}/third-party/zlib/zutil.c
+ 	)
+-source_group("Source Files\\ThirdParty\\zlib" FILES ${HEADERFILES_THIRDPARTY_ZLIB})
+ 
+ list(APPEND SOURCE_FILES
+ 	${INTERNAL_HEADER_COMMONCODE_NMDS}
+@@ -200,30 +164,13 @@
+ 	${INTERNAL_HEADER_PLUGINHANDLER}
+ 	${PUBLIC_HEADER_CLIENTGLUE}
+ 	${PUBLIC_HEADER}
+-	${HEADERFILES_THIRDPARTY_ZLIB}
+ 	${HEADERFILES}
+ 	${RESOURCE_FILES}
+ 	${SOURCEFILES_COMMONCODE_NMDS}
+ 	${SOURCEFILES_COMMONCODE}
+ 	${SOURCEFILES_FILEHANDLERS}
+-	${SOURCEFILES_FORMATSUPPORT_AIFF}
+-	${SOURCEFILES_FORMATSUPPORT_IFF}
+-	${SOURCEFILES_FORMATSUPPORT_WAVE}
+-	${SOURCEFILES_FORMATSUPPORT}
+-	${SOURCEFILES_PLUGINHANDLER}
+-	${PUBLIC_XMPCOMMON_CLIENTGLUE_FILES}
+-	${PUBLIC_XMPCORE_CLIENTGLUE_FILES}
+-	${HEADERFILES_THIRDPARTY_ZLIB}
+-	${FILES_THIRDPARTY_EXPAT}
+-	)
+-
+-# include directories
+-include_directories(${XMPROOT_DIR})
+-include_directories(${XMPROOT_DIR}/public/include)
+ include_directories(${XMPROOT_DIR}/public/include/client-glue)
+ 
+-include_directories(${TP_EXPAT_PATH})
+-include_directories(${XMPROOT_DIR}/third-party/expat/public/lib)
+ include_directories(${XMPROOT_DIR}/XMPFilesPlugins/api/source)
+ include_directories(${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT})
+ 
+@@ -306,6 +253,9 @@
+ set(FRAMEWORK_LIST "ALL:CoreFoundation" "Mac:CoreServices" "ALL:${LIB_ADOBEXMP}" "ALL:${XMP_PLATFORM_LINK}")
+ AddMacFramework(${TARGET_NAME} FRAMEWORK_LIST)
+ 
++# Link with zlib from vcpkg
++target_link_libraries(${TARGET_NAME} ZLIB::ZLIB)
++
+ if(UNIX)
+ 	if (NOT APPLE)
+ 		SetPlatformLinkFlags(${TARGET_NAME} "-Xlinker --version-script -Xlinker \"${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT}/${TARGET_NAME}.exp\"" "")
+diff -Naur XMP-Toolkit-SDK-2025.03/XMPFiles/source/FileHandlers/SVG_Handler.hpp XMP-Toolkit-SDK-zlib/XMPFiles/source/FileHandlers/SVG_Handler.hpp
+--- XMP-Toolkit-SDK-2025.03/XMPFiles/source/FileHandlers/SVG_Handler.hpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-zlib/XMPFiles/source/FileHandlers/SVG_Handler.hpp	2026-02-23 19:49:31.329503299 +0000
+@@ -25,7 +25,7 @@
+ #include "XMPFiles/source/XMPFiles_Impl.hpp"
+ #include "XMPFiles/source/FormatSupport/SVG_Adapter.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include "zlib.h"
+ 
+ extern XMPFileHandler* SVG_MetaHandlerCTor( XMPFiles* parent );
+ 
+diff -Naur XMP-Toolkit-SDK-2025.03/XMPFiles/source/FileHandlers/UCF_Handler.cpp XMP-Toolkit-SDK-zlib/XMPFiles/source/FileHandlers/UCF_Handler.cpp
+--- XMP-Toolkit-SDK-2025.03/XMPFiles/source/FileHandlers/UCF_Handler.cpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-zlib/XMPFiles/source/FileHandlers/UCF_Handler.cpp	2026-02-23 19:49:31.331503322 +0000
+@@ -18,7 +18,7 @@
+ 
+ #include "XMPFiles/source/FileHandlers/UCF_Handler.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include "zlib.h"
+ 
+ #include <time.h>
+ 
+diff -Naur XMP-Toolkit-SDK-2025.03/XMPFiles/source/FormatSupport/SVG_Adapter.cpp XMP-Toolkit-SDK-zlib/XMPFiles/source/FormatSupport/SVG_Adapter.cpp
+--- XMP-Toolkit-SDK-2025.03/XMPFiles/source/FormatSupport/SVG_Adapter.cpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-zlib/XMPFiles/source/FormatSupport/SVG_Adapter.cpp	2026-02-23 19:49:31.333503345 +0000
+@@ -17,7 +17,7 @@
+ 
+ #include "XMPFiles/source/FormatSupport/SVG_Adapter.hpp"
+ 
+-#include "third-party/expat/lib/expat.h"
++#include "expat.h"
+ #include <string.h>
+ 
+ using namespace std;
+diff -Naur XMP-Toolkit-SDK-2025.03/XMPFiles/source/FormatSupport/SWF_Support.cpp XMP-Toolkit-SDK-zlib/XMPFiles/source/FormatSupport/SWF_Support.cpp
+--- XMP-Toolkit-SDK-2025.03/XMPFiles/source/FormatSupport/SWF_Support.cpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-zlib/XMPFiles/source/FormatSupport/SWF_Support.cpp	2026-02-23 19:49:31.334503357 +0000
+@@ -18,7 +18,7 @@
+ 
+ #include "XMPFiles/source/FormatSupport/SWF_Support.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include "zlib.h"
+ 
+ // =================================================================================================
+ 
+diff -Naur XMP-Toolkit-SDK-2025.03/XMPFiles/source/FormatSupport/SWF_Support.hpp XMP-Toolkit-SDK-zlib/XMPFiles/source/FormatSupport/SWF_Support.hpp
+--- XMP-Toolkit-SDK-2025.03/XMPFiles/source/FormatSupport/SWF_Support.hpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-zlib/XMPFiles/source/FormatSupport/SWF_Support.hpp	2026-02-23 19:49:31.336503380 +0000
+@@ -17,7 +17,7 @@
+ 
+ #include "XMPFiles/source/XMPFiles_Impl.hpp"
+ 
+-#include "third-party/zlib/zlib.h"
++#include "zlib.h"
+ 
+ // =================================================================================================
+ 

@@ -1,0 +1,196 @@
+diff -Naur XMP-Toolkit-SDK-2025.03/XMPCore/build/CMakeLists.txt XMP-Toolkit-SDK-expat/XMPCore/build/CMakeLists.txt
+--- XMP-Toolkit-SDK-2025.03/XMPCore/build/CMakeLists.txt	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-expat/XMPCore/build/CMakeLists.txt	2026-02-23 19:48:46.061921377 +0000
+@@ -1,92 +1,68 @@
+-# =================================================================================================
+-# ADOBE SYSTEMS INCORPORATED
+-# Copyright 2013 Adobe Systems Incorporated
+-# All Rights Reserved
+-#
+-# NOTICE: Adobe permits you to use, modify, and distribute this file in accordance with the terms
+-# of the Adobe license agreement accompanying it.
+-# =================================================================================================
++cmake_minimum_required(VERSION 3.15.5)
+ 
+-# ==============================================================================
+-# define minimum cmake version
+-# For Android always build with make 3.6
+-if(ANDROID)
+-	cmake_minimum_required(VERSION 3.5.2)
+-else(ANDROID)
+-	cmake_minimum_required(VERSION 3.15.5)
+-endif(ANDROID)
+-
+-# Enable folder grouping of projects in IDEs
++# Enable folder grouping in generated project files
+ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+-set(CMAKE_C_IMPLICIT_LINK_DIRECTORIES "")
+-set(CMAKE_C_IMPLICIT_LINK_FRAMEWORK_DIRECTORIES "")
+ 
+-# ==============================================================================
+-# This project
++project(XMPCore)
++
++set(TARGET_NAME XMPCoreStatic)
++if(NOT ${XMP_BUILD_STATIC})
+ set(TARGET_NAME XMPCore)
+-if(CMAKE_CL_64)
+-	project(${TARGET_NAME}64)
+-else(CMAKE_CL_64)
+-	project(${TARGET_NAME})
+-endif(CMAKE_CL_64)
+-
+-set(STATIC_STR "Static")
+-if (XMP_BUILD_STATIC)
+-	set(TARGET_NAME "${TARGET_NAME}${STATIC_STR}")
+-	set(PROJECT_LABEL_STR "${TARGET_NAME}")
+-else(XMP_BUILD_STATIC)
+-	set(PROJECT_LABEL_STR "${TARGET_NAME}")
+-endif(XMP_BUILD_STATIC)
++endif()
+ 
+-# ==============================================================================
+-# Shared config
+-# ==============================================================================
+-# setup some values before calling shared config
+-set(XMP_THIS_PROJECT_RELATIVEPATH "../..")
++set(PRODUCT_NAME XMPCore)
++
++set(PROJECT_ROOT ../../..)
++
++set(XMP_THIS_PROJECT_RELATIVEPATH "../../..")
++
++set(XMPROOT_DIR ${PROJECT_ROOT})
++
++set(SOURCE_ROOT ${PROJECT_ROOT}/source)
++set(RESOURCE_ROOT ${XMPROOT_DIR}/build)
+ 
+ include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/build/XMP_Config.cmake)
+ 
+-add_definitions(-DBUILDING_XMPCORE_LIB=1 -DXMP_COMPONENT_INT_NAMESPACE=AdobeXMPCore_Int)
+-if (XMP_BUILD_STATIC)
+-	add_definitions(-DBUILDING_XMPCORE_AS_STATIC=1)
++# set(XMP_BUILD_STATIC "On")
++
++if(XMP_BUILD_STATIC)
++set(PROJECTCONFIG_STATIC "Static")
+ else()
+-	add_definitions(-DBUILDING_XMPCORE_AS_DYNAMIC=1)
++set(PROJECTCONFIG_STATIC "")
+ endif()
+ 
++# configuration
+ set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
+-set(TP_EXPAT_PATH "${PROJECT_ROOT}/../../third-party/expat/lib/")
++set(CMAKE_MODULE_PATH ${XMPROOT_DIR}/build)
++if(APPLE)
++include(CMakeMacros_Apple.cmake)
++endif()
+ 
+ # ==============================================================================
+-# Project specific config starts here
++# This project
+ # ==============================================================================
+-if(UNIX)
+-	if(APPLE)
+-		# OSX -------------------------------------------
+-		if(XMP_BUILD_STATIC)
+-			set(XMPCORE_LIB "XMPCoreStatic")
+-		else(XMP_BUILD_STATIC)
+-			set(XMPCORE_LIB "XMPCore")
+-		endif()
+-	else(APPLE)
+-		# Linux -------------------------------------------
+-		if(XMP_BUILD_STATIC)
+-			set(XMPCORE_LIB "staticXMPCore")
+-		else(XMP_BUILD_STATIC)
+-			set(XMPCORE_LIB "XMPCore")
+-		endif()
+-	endif(APPLE)
+-else(UNIX)
+-	if(WIN32)
+-		# Windows -------------------------------------------
+-		if(XMP_BUILD_STATIC)
+-			set(XMPCORE_LIB "XMPCoreStatic")
+-		else(XMP_BUILD_STATIC)
+-			set(XMPCORE_LIB "XMPCore")
+-		endif()
+-	endif(WIN32)
+-endif(UNIX)
+ 
+-include(${CMAKE_CURRENT_SOURCE_DIR}/${XMP_THIS_PROJECT_RELATIVEPATH}/XMPCore/build/CMakeListsCommon.txt)
++#find_package(Threads)
++
++include(${XMPROOT_DIR}/build/ProductConfig.cmake)
+ 
++add_definitions(-DBUILDING_XMPCORE_LIB=1)
+ 
++if(APPLE)
++add_definitions(-DBuilding${PROJECTCONFIG_STATIC}XMPCore${PROJECTCONFIG_STATIC}=1)
++else()
++add_definitions(-DBUILDING_XMPCORE_AS_STATIC=1)
++endif()
++if(NOT ${XMP_BUILD_STATIC})
++add_definitions(-DBUILDING_XMPCORE_AS_DYNAMIC=1)
++endif()
++
++# Use vcpkg dependencies
++find_package(EXPAT REQUIRED)
++set(TP_ZUID_PATH "${XMPROOT_DIR}/third-party/zuid/interfaces")
++
++# ==============================================================================
++# Project specific config starts here
++# ==============================================================================
+ 
++include(CMakeListsCommon.txt)
+diff -Naur XMP-Toolkit-SDK-2025.03/XMPCore/build/CMakeListsCommon.txt XMP-Toolkit-SDK-expat/XMPCore/build/CMakeListsCommon.txt
+--- XMP-Toolkit-SDK-2025.03/XMPCore/build/CMakeListsCommon.txt	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-expat/XMPCore/build/CMakeListsCommon.txt	2026-02-23 19:48:52.987013055 +0000
+@@ -84,16 +84,9 @@
+ 
+ #XMP Core classes
+ file (GLOB CORECLASS_SOURCE_FILES ${SOURCE_ROOT}/XMP*.cpp)
+-list (REMOVE_ITEM CORECLASS_SOURCE_FILES ${SOURCE_ROOT}/XMPCore_Impl.cpp)
+-source_group("Source Files\\Core Classes" FILES ${CORECLASS_SOURCE_FILES})
+-
++# Keep zuid, remove expat sources (use vcpkg)
+ file (GLOB ZUID_SOURCE_FILES ${TP_ZUID_PATH}/*.cpp)
+-list (APPEND THIRDPARTY_SOURCE_FILES
+-	${TP_EXPAT_PATH}/xmlparse.c
+-	${TP_EXPAT_PATH}/xmlrole.c
+-	${TP_EXPAT_PATH}/xmltok.c
+-	${ZUID_SOURCE_FILES}
+-	)
++list (APPEND THIRDPARTY_SOURCE_FILES ${ZUID_SOURCE_FILES})
+ if(WIN32)
+ 	list (APPEND THIRDPARTY_SOURCE_FILES ${RESOURCE_ROOT}/win/expat_config.h)
+ else()
+@@ -162,7 +155,6 @@
+ include_directories(${XMPROOT_DIR}/XMPCore/third-party/boost/boost)
+ endif()
+ if (WIN32)
+-	include_directories(${RESOURCE_ROOT}/win)
+ else ()
+ 	include_directories(${RESOURCE_ROOT}/${XMP_PLATFORM_SHORT})
+ endif ()
+@@ -243,6 +235,8 @@
+ 	else()
+ 		if(APPLE_IOS AND NOT XMP_BUILD_STATIC)
+ 			set_target_properties(${TARGET_NAME} PROPERTIES XCODE_ATTRIBUTE_DYLIB_INSTALL_NAME_BASE "@rpath")
++# Link with expat from vcpkg
++target_link_libraries(${TARGET_NAME} EXPAT::EXPAT)
+ 			set_target_properties(${TARGET_NAME} PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.adobe.Adobe${TARGET_NAME}")
+ 			set_target_properties(${TARGET_NAME} PROPERTIES XCODE_ATTRIBUTE_INSTALL_PATH "@rpath")
+ 			set_target_properties(${TARGET_NAME} PROPERTIES XCODE_ATTRIBUTE_LIBRARY_SEARCH_PATHS "")
+diff -Naur XMP-Toolkit-SDK-2025.03/XMPCore/source/ExpatAdapter.cpp XMP-Toolkit-SDK-expat/XMPCore/source/ExpatAdapter.cpp
+--- XMP-Toolkit-SDK-2025.03/XMPCore/source/ExpatAdapter.cpp	2025-03-28 09:49:20.000000000 +0000
++++ XMP-Toolkit-SDK-expat/XMPCore/source/ExpatAdapter.cpp	2026-02-23 19:48:57.949073002 +0000
+@@ -12,7 +12,7 @@
+ #include "source/ExpatAdapter.hpp"
+ #include "XMPCore/source/XMPMeta.hpp"
+ 
+-#include "third-party/expat/lib/expat.h"
++#include "expat.h"
+ #include <string.h>
+ 
+ using namespace std;
