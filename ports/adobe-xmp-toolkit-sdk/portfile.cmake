@@ -184,8 +184,7 @@ endif()
 # For Windows SHARED libraries, we need to set both IMPORTED_LOCATION (DLL) and IMPORTED_IMPLIB (.lib)
 # For other platforms or STATIC libraries, only IMPORTED_LOCATION is needed
 if(VCPKG_TARGET_IS_WINDOWS AND VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
-    set(XMPCORE_IMPLIB_CODE "
-    # Windows DLL: Set IMPORTED_IMPLIB for import library
+    set(XMPCORE_IMPLIB_CODE "# Windows DLL: Set IMPORTED_IMPLIB for import library
     set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
         IMPORTED_IMPLIB_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/XMPCore.lib\"
         IMPORTED_IMPLIB_RELEASE \"\${_IMPORT_PREFIX}/lib/XMPCore.lib\"
@@ -211,8 +210,7 @@ if(VCPKG_TARGET_IS_WINDOWS AND VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
         IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/bin/XMPCore.dll\"
     )")
     
-    set(XMPFILES_IMPLIB_CODE "
-    # Windows DLL: Set IMPORTED_IMPLIB for import library
+    set(XMPFILES_IMPLIB_CODE "# Windows DLL: Set IMPORTED_IMPLIB for import library
     set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
         IMPORTED_IMPLIB_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/XMPFiles.lib\"
         IMPORTED_IMPLIB_RELEASE \"\${_IMPORT_PREFIX}/lib/XMPFiles.lib\"
@@ -239,8 +237,7 @@ if(VCPKG_TARGET_IS_WINDOWS AND VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
     )")
 else()
     # Non-Windows or static libraries: use standard library naming
-    set(XMPCORE_IMPLIB_CODE "
-    # Set up locations for all build configurations
+    set(XMPCORE_IMPLIB_CODE "# Set up locations for all build configurations
     set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
         IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
         IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
@@ -253,8 +250,7 @@ else()
         IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPCore\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
     )")
     
-    set(XMPFILES_IMPLIB_CODE "
-    # Set up locations for all build configurations
+    set(XMPFILES_IMPLIB_CODE "# Set up locations for all build configurations
     set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
         IMPORTED_LOCATION_DEBUG \"\${_IMPORT_PREFIX}/debug/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
         IMPORTED_LOCATION_RELEASE \"\${_IMPORT_PREFIX}/lib/\${CMAKE_${LIBRARY_TYPE}_LIBRARY_PREFIX}XMPFiles\${CMAKE_${LIBRARY_TYPE}_LIBRARY_SUFFIX}\"
@@ -268,40 +264,11 @@ else()
     )")
 endif()
 
-file(WRITE "${CURRENT_PACKAGES_DIR}/share/${PORT}/adobe-xmp-toolkit-sdk-targets.cmake" 
-"# Generated CMake target import file
-
-# Compute the installation prefix relative to this file
-get_filename_component(_IMPORT_PREFIX \"\${CMAKE_CURRENT_LIST_FILE}\" PATH)
-get_filename_component(_IMPORT_PREFIX \"\${_IMPORT_PREFIX}\" PATH)
-get_filename_component(_IMPORT_PREFIX \"\${_IMPORT_PREFIX}\" PATH)
-
-if(NOT TARGET adobe-xmp-toolkit-sdk::XMPCore)
-    add_library(adobe-xmp-toolkit-sdk::XMPCore ${LIBRARY_TYPE} IMPORTED)
-    set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES \"\${_IMPORT_PREFIX}/include\"
-    )
-    
-    # Link to dependencies (use expat::expat, the actual target from expat's config)
-    set_property(TARGET adobe-xmp-toolkit-sdk::XMPCore APPEND PROPERTY
-        INTERFACE_LINK_LIBRARIES expat::expat
-    )
-    ${XMPCORE_IMPLIB_CODE}
-endif()
-
-if(NOT TARGET adobe-xmp-toolkit-sdk::XMPFiles)
-    add_library(adobe-xmp-toolkit-sdk::XMPFiles ${LIBRARY_TYPE} IMPORTED)
-    set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES \"\${_IMPORT_PREFIX}/include\"
-    )
-    
-    # Link to dependencies
-    set_property(TARGET adobe-xmp-toolkit-sdk::XMPFiles APPEND PROPERTY
-        INTERFACE_LINK_LIBRARIES ZLIB::ZLIB adobe-xmp-toolkit-sdk::XMPCore
-    )
-    ${XMPFILES_IMPLIB_CODE}
-endif()
-")
+configure_file(
+    "${CMAKE_CURRENT_LIST_DIR}/adobe-xmp-toolkit-sdk-targets.cmake.in"
+    "${CURRENT_PACKAGES_DIR}/share/${PORT}/adobe-xmp-toolkit-sdk-targets.cmake"
+    @ONLY
+)
 
 # Configure and install the CMake config file
 include(CMakePackageConfigHelpers)

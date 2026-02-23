@@ -1,0 +1,32 @@
+# Generated CMake target import file
+
+# Compute the installation prefix relative to this file
+get_filename_component(_IMPORT_PREFIX "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+
+if(NOT TARGET adobe-xmp-toolkit-sdk::XMPCore)
+    add_library(adobe-xmp-toolkit-sdk::XMPCore @LIBRARY_TYPE@ IMPORTED)
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPCore PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+    )
+    
+    # Link to dependencies (use expat::expat, the actual target from expat's config)
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPCore APPEND PROPERTY
+        INTERFACE_LINK_LIBRARIES expat::expat
+    )
+    @XMPCORE_IMPLIB_CODE@
+endif()
+
+if(NOT TARGET adobe-xmp-toolkit-sdk::XMPFiles)
+    add_library(adobe-xmp-toolkit-sdk::XMPFiles @LIBRARY_TYPE@ IMPORTED)
+    set_target_properties(adobe-xmp-toolkit-sdk::XMPFiles PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+    )
+    
+    # Link to dependencies
+    set_property(TARGET adobe-xmp-toolkit-sdk::XMPFiles APPEND PROPERTY
+        INTERFACE_LINK_LIBRARIES ZLIB::ZLIB adobe-xmp-toolkit-sdk::XMPCore
+    )
+    @XMPFILES_IMPLIB_CODE@
+endif()
