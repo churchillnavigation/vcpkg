@@ -2,7 +2,9 @@ set(VCPKG_POLICY_EMPTY_PACKAGE enabled)
 
 # Determine platform key
 set(key NOTFOUND)
-if(VCPKG_CMAKE_SYSTEM_NAME)
+if(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR VCPKG_TARGET_IS_IOS)
+    set(key "Darwin-${VCPKG_TARGET_ARCHITECTURE}")
+elseif(VCPKG_CMAKE_SYSTEM_NAME)
     set(key "${VCPKG_CMAKE_SYSTEM_NAME}-${VCPKG_TARGET_ARCHITECTURE}")
 elseif(VCPKG_TARGET_IS_WINDOWS)
     set(key "Windows-${VCPKG_TARGET_ARCHITECTURE}")
@@ -48,8 +50,6 @@ if(key STREQUAL "Darwin-arm64" OR VCPKG_ISPC_UPDATE)
         SHA512 6d5fdeed71451840732f3860117f1a199488a4eb43b842cdacf352a7a4500df875ffd65ca0432f7372b8fd8f97e8c5f139dbd99b4c14affcbe3bd196e2ab4128
     )
     set(ARCHIVE_EXT ".tar.gz")
-    # Avoid breaking the code signature
-    set(VCPKG_FIXUP_MACHO_RPATH OFF)
 endif()
 
 if(key STREQUAL "Darwin-x64" OR VCPKG_ISPC_UPDATE)
@@ -60,7 +60,12 @@ if(key STREQUAL "Darwin-x64" OR VCPKG_ISPC_UPDATE)
         SHA512 14d28374574dcf51fea80fe73d9d7b1d73631331a71c8f3285fb9f6263e026cab4270c1fe66ade6efeeed8fcc532d7886fb02232bf68f96ad7395329017ae9ce
     )
     set(ARCHIVE_EXT ".tar.gz")
-    # Avoid breaking the code signature
+endif()
+
+# On macOS/iOS, ISPC has signed their binaries
+# vcpkg wants to be helpful and update the rpath as it moves binaries around but this
+# breaks the code signature and makes the binaries useless
+if(VCPKG_TARGET_IS_OSX OR VCPKG_TARGET_IS_IOS)
     set(VCPKG_FIXUP_MACHO_RPATH OFF)
 endif()
 
@@ -121,9 +126,8 @@ if(NOT VCPKG_BUILD_TYPE)
 endif()
 
 # Install headers
-file(GLOB_RECURSE headers "${BINDIST_PATH}/include/*")
-if(headers)
-    file(INSTALL ${headers} DESTINATION "${CURRENT_PACKAGES_DIR}/include")
+if(EXISTS "${BINDIST_PATH}/include")
+    file(COPY "${BINDIST_PATH}/include/" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
 endif()
 
 # Handle CMake config files

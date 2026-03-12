@@ -1,0 +1,15 @@
+ispc provides CMake targets:
+
+  # ISPC compiler library
+  find_package(ispc CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE ispc::libispc_shared)
+
+  # ISPC runtime library
+  find_package(ispcrt CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE ispcrt::ispcrt)
+
+The ISPC compiler executable is available at:
+  ${ispc_DIR}/../../tools/ispc/ispc
+
+Or via the CMake variable:
+  ${ISPC_EXECUTABLE}
