@@ -1,0 +1,14 @@
+{
+  "name": "ispc",
+  "version": "1.30.0",
+  "description": "Intel Implicit SPMD Program Compiler (ISPC) is a compiler for a variant of the C programming language with extensions for SIMD programming. This port installs prebuilt binaries.",
+  "homepage": "https://github.com/ispc/ispc",
+  "license": "BSD-3-Clause",
+  "supports": "(x64 | arm64) & (linux | osx | windows | ios)",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}
