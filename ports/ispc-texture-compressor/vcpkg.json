@@ -1,0 +1,19 @@
+{
+  "name": "ispc-texture-compressor",
+  "version": "1.0.0",
+  "description": "Fast ISPC Texture Compressor for BC6H, BC7, ASTC, ETC1, BC1-5 formats",
+  "homepage": "https://github.com/GameTechDev/ISPCTextureCompressor",
+  "license": "MIT",
+  "supports": "(x64 | arm64) & (linux | osx | windows)",
+  "dependencies": [
+    "ispc",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}
