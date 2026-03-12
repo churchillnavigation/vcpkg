@@ -1,15 +1,11 @@
 vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 
-vcpkg_download_distfile(
-    ARCHIVE
-    URLS "https://github.com/GameTechDev/ISPCTextureCompressor/archive/master.tar.gz"
-    FILENAME "ispc-texture-compressor-source.tar.gz"
-    SHA512 baaa53cea4c33312ba07039ab5e65f0daa37a4bdb26dca97b17f86bd17e99fd512bb53278dd2daa29f036c8348fa9fb4fb24ca4e5821514d25a6105654329085
-)
-
-vcpkg_extract_source_archive(
-    SOURCE_PATH
-    ARCHIVE "${ARCHIVE}"
+vcpkg_from_github(
+    OUT_SOURCE_PATH SOURCE_PATH
+    REPO GameTechDev/ISPCTextureCompressor
+    REF 79ddbc90334fc31edd438e68ccb0fe99b4e15aab
+    SHA512 9e129a30c05c9d418aa0578aee53dcc26203383bd4bd7c3ab907e974575053020020110f4cf7c950d60b479419c3516dc4f67ff7bb0246a662cc9d095a53ad28
+    HEAD_REF master
 )
 
 # Copy our CMake files to the source directory

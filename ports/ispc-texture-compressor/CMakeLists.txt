@@ -40,7 +40,14 @@ foreach(ispc_file ${ISPC_SOURCES})
 
     set(ISPC_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/${fdir}")
     set(ISPC_HEADER_FILE "${ISPC_OUTPUT_DIR}/${fname}_ispc.h")
-    set(ISPC_OBJ_FILE "${ISPC_OUTPUT_DIR}/${fname}_ispc${CMAKE_CXX_OUTPUT_EXTENSION}")
+
+    # Determine object file extension based on platform
+    if(WIN32)
+        set(ISPC_OBJ_EXT ".obj")
+    else()
+        set(ISPC_OBJ_EXT ".o")
+    endif()
+    set(ISPC_OBJ_FILE "${ISPC_OUTPUT_DIR}/${fname}_ispc${ISPC_OBJ_EXT}")
 
     # Determine architecture
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -67,7 +74,7 @@ foreach(ispc_file ${ISPC_SOURCES})
     set(ISPC_TARGET_OBJS "")
     string(REPLACE "," ";" ISPC_TARGETS_LIST "${ISPC_TARGETS}")
     foreach(target ${ISPC_TARGETS_LIST})
-        list(APPEND ISPC_TARGET_OBJS "${ISPC_OUTPUT_DIR}/${fname}_ispc_${target}${CMAKE_CXX_OUTPUT_EXTENSION}")
+        list(APPEND ISPC_TARGET_OBJS "${ISPC_OUTPUT_DIR}/${fname}_ispc_${target}${ISPC_OBJ_EXT}")
     endforeach()
 
     add_custom_command(
