@@ -1,17 +1,26 @@
 cmake_minimum_required(VERSION 3.15)
 project(ispc_texcomp VERSION 1.0 LANGUAGES CXX)
 
-# Find ISPC compiler and runtime
-find_package(ispcrt CONFIG REQUIRED)
-
-# Get the ISPC executable from the config
-if(TARGET ispc::libispc_shared)
-    get_target_property(ISPC_PACKAGE_DIR ispc::libispc_shared INTERFACE_INCLUDE_DIRECTORIES)
+# Find ISPC compiler executable from host tools
+# When cross-compiling, ISPC tools are installed as host dependencies
+if(DEFINED VCPKG_HOST_TRIPLET AND NOT VCPKG_HOST_TRIPLET STREQUAL "")
+    set(ISPC_TOOL_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_HOST_TRIPLET}/tools/ispc")
+else()
+    # When not cross-compiling, the tools are in the regular installed directory
+    set(ISPC_TOOL_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/ispc")
 endif()
 
-# Include ISPC CMake module
-list(APPEND CMAKE_MODULE_PATH "${ispcrt_DIR}")
-include(ispc)
+if(WIN32)
+    set(ISPC_EXECUTABLE "${ISPC_TOOL_PATH}/ispc.exe")
+else()
+    set(ISPC_EXECUTABLE "${ISPC_TOOL_PATH}/ispc")
+endif()
+
+if(NOT EXISTS "${ISPC_EXECUTABLE}")
+    message(FATAL_ERROR "ISPC executable not found at ${ISPC_EXECUTABLE}")
+endif()
+
+message(STATUS "Using ISPC: ${ISPC_EXECUTABLE}")
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 11)

@@ -10,5 +10,17 @@
       "name": "vcpkg-cmake-config",
       "host": true
     }
-  ]
+  ],
+  "default-features": [
+    "library",
+    "tools"
+  ],
+  "features": {
+    "library": {
+      "description": "Install ISPC runtime libraries"
+    },
+    "tools": {
+      "description": "Install ISPC compiler executable"
+    }
+  }
 }

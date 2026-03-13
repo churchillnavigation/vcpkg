@@ -94,86 +94,91 @@ vcpkg_extract_source_archive(
     ARCHIVE "${ARCHIVE}"
 )
 
-# Install libraries
-file(GLOB libs
-    "${BINDIST_PATH}/lib/*.lib"
-    "${BINDIST_PATH}/lib/*.a"
-    "${BINDIST_PATH}/lib/*.dylib"
-    "${BINDIST_PATH}/lib/*.so"
-    "${BINDIST_PATH}/lib/*.so.*"
-)
-if(libs)
-    file(INSTALL ${libs} DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
-endif()
-
-# Install DLLs on Windows
-if(VCPKG_TARGET_IS_WINDOWS)
-    file(GLOB dlls "${BINDIST_PATH}/bin/*.dll")
-    if(dlls)
-        file(INSTALL ${dlls} DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
-    endif()
-endif()
-
-# Replicate for debug (prebuilt binaries don't have separate debug builds)
-if(NOT VCPKG_BUILD_TYPE)
-    file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/debug")
-    if(EXISTS "${CURRENT_PACKAGES_DIR}/lib")
-        file(INSTALL "${CURRENT_PACKAGES_DIR}/lib" DESTINATION "${CURRENT_PACKAGES_DIR}/debug")
-    endif()
-    if(VCPKG_TARGET_IS_WINDOWS AND EXISTS "${CURRENT_PACKAGES_DIR}/bin")
-        file(INSTALL "${CURRENT_PACKAGES_DIR}/bin" DESTINATION "${CURRENT_PACKAGES_DIR}/debug")
-    endif()
-endif()
-
-# Install headers
-if(EXISTS "${BINDIST_PATH}/include")
-    file(COPY "${BINDIST_PATH}/include/" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
-endif()
-
-# Handle CMake config files
-# Move lib/cmake/* to share/
-if(EXISTS "${BINDIST_PATH}/lib/cmake")
-    file(GLOB cmake_dirs "${BINDIST_PATH}/lib/cmake/*")
-    foreach(cmake_dir ${cmake_dirs})
-        get_filename_component(config_name "${cmake_dir}" NAME)
-        file(COPY "${cmake_dir}/" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${config_name}")
-    endforeach()
-endif()
-
-# Install the ispc executable to tools/ispc/
-file(GLOB ispc_exe
-    "${BINDIST_PATH}/bin/ispc${VCPKG_HOST_EXECUTABLE_SUFFIX}"
-    "${BINDIST_PATH}/bin/ispc"
-)
-if(ispc_exe)
-    file(INSTALL ${ispc_exe} DESTINATION "${CURRENT_PACKAGES_DIR}/tools/${PORT}")
-    file(CHMOD "${CURRENT_PACKAGES_DIR}/tools/${PORT}/ispc${VCPKG_HOST_EXECUTABLE_SUFFIX}"
-        FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+# Check which features are enabled
+if("library" IN_LIST FEATURES)
+    # Install libraries
+    file(GLOB libs
+        "${BINDIST_PATH}/lib/*.lib"
+        "${BINDIST_PATH}/lib/*.a"
+        "${BINDIST_PATH}/lib/*.dylib"
+        "${BINDIST_PATH}/lib/*.so"
+        "${BINDIST_PATH}/lib/*.so.*"
     )
-endif()
+    if(libs)
+        file(INSTALL ${libs} DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
+    endif()
 
-# Fixup CMake configs
-block(SCOPE_FOR VARIABLES)
-    set(VCPKG_BUILD_TYPE Release) # no separate debug binaries
-
-    # Fix ispc config if it exists
-    if(EXISTS "${CURRENT_PACKAGES_DIR}/share/ispc")
-        vcpkg_cmake_config_fixup(CONFIG_PATH share/ispc PACKAGE_NAME ispc)
-
-        # Update the config to point to tools/ispc
-        if(EXISTS "${CURRENT_PACKAGES_DIR}/share/ispc/ispcConfig.cmake")
-            vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/share/ispc/ispcConfig.cmake"
-                [[set(ISPC_EXECUTABLE "${PACKAGE_PREFIX_DIR}/bin/ispc")]]
-                [[set(ISPC_EXECUTABLE "${PACKAGE_PREFIX_DIR}/tools/ispc/ispc")]]
-            )
+    # Install DLLs on Windows
+    if(VCPKG_TARGET_IS_WINDOWS)
+        file(GLOB dlls "${BINDIST_PATH}/bin/*.dll")
+        if(dlls)
+            file(INSTALL ${dlls} DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
         endif()
     endif()
 
-    # Fix ispcrt config if it exists
-    if(EXISTS "${CURRENT_PACKAGES_DIR}/share/ispcrt-${VERSION}")
-        vcpkg_cmake_config_fixup(CONFIG_PATH share/ispcrt-${VERSION} PACKAGE_NAME ispcrt)
+    # Replicate for debug (prebuilt binaries don't have separate debug builds)
+    if(NOT VCPKG_BUILD_TYPE)
+        file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/debug")
+        if(EXISTS "${CURRENT_PACKAGES_DIR}/lib")
+            file(INSTALL "${CURRENT_PACKAGES_DIR}/lib" DESTINATION "${CURRENT_PACKAGES_DIR}/debug")
+        endif()
+        if(VCPKG_TARGET_IS_WINDOWS AND EXISTS "${CURRENT_PACKAGES_DIR}/bin")
+            file(INSTALL "${CURRENT_PACKAGES_DIR}/bin" DESTINATION "${CURRENT_PACKAGES_DIR}/debug")
+        endif()
     endif()
-endblock()
+
+    # Install headers
+    if(EXISTS "${BINDIST_PATH}/include")
+        file(COPY "${BINDIST_PATH}/include/" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
+    endif()
+
+    # Handle CMake config files
+    # Move lib/cmake/* to share/
+    if(EXISTS "${BINDIST_PATH}/lib/cmake")
+        file(GLOB cmake_dirs "${BINDIST_PATH}/lib/cmake/*")
+        foreach(cmake_dir ${cmake_dirs})
+            get_filename_component(config_name "${cmake_dir}" NAME)
+            file(COPY "${cmake_dir}/" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${config_name}")
+        endforeach()
+    endif()
+
+    # Fixup CMake configs
+    block(SCOPE_FOR VARIABLES)
+        set(VCPKG_BUILD_TYPE Release) # no separate debug binaries
+
+        # Fix ispc config if it exists
+        if(EXISTS "${CURRENT_PACKAGES_DIR}/share/ispc")
+            vcpkg_cmake_config_fixup(CONFIG_PATH share/ispc PACKAGE_NAME ispc)
+
+            # Update the config to point to tools/ispc
+            if(EXISTS "${CURRENT_PACKAGES_DIR}/share/ispc/ispcConfig.cmake")
+                vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/share/ispc/ispcConfig.cmake"
+                    [[set(ISPC_EXECUTABLE "${PACKAGE_PREFIX_DIR}/bin/ispc")]]
+                    [[set(ISPC_EXECUTABLE "${PACKAGE_PREFIX_DIR}/tools/ispc/ispc")]]
+                )
+            endif()
+        endif()
+
+        # Fix ispcrt config if it exists
+        if(EXISTS "${CURRENT_PACKAGES_DIR}/share/ispcrt-${VERSION}")
+            vcpkg_cmake_config_fixup(CONFIG_PATH share/ispcrt-${VERSION} PACKAGE_NAME ispcrt)
+        endif()
+    endblock()
+endif()
+
+if("tools" IN_LIST FEATURES)
+    # Install the ispc executable to tools/ispc/
+    file(GLOB ispc_exe
+        "${BINDIST_PATH}/bin/ispc${VCPKG_HOST_EXECUTABLE_SUFFIX}"
+        "${BINDIST_PATH}/bin/ispc"
+    )
+    if(ispc_exe)
+        file(INSTALL ${ispc_exe} DESTINATION "${CURRENT_PACKAGES_DIR}/tools/${PORT}")
+        file(CHMOD "${CURRENT_PACKAGES_DIR}/tools/${PORT}/ispc${VCPKG_HOST_EXECUTABLE_SUFFIX}"
+            FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        )
+    endif()
+endif()
 
 # Install license
 vcpkg_install_copyright(FILE_LIST "${license}")

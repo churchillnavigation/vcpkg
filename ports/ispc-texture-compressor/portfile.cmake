@@ -17,6 +17,10 @@ file(COPY
 
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
+    OPTIONS
+        -D_VCPKG_INSTALLED_DIR=${_VCPKG_INSTALLED_DIR}
+        -DVCPKG_HOST_TRIPLET=${VCPKG_HOST_TRIPLET}
+        -DVCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}
 )
 
 vcpkg_cmake_install()
