@@ -1,21 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(ispc_texcomp VERSION 1.0 LANGUAGES CXX)
 
-# Find ISPC compiler executable from host tools
-# When cross-compiling, ISPC tools are installed as host dependencies
-if(DEFINED VCPKG_HOST_TRIPLET AND NOT VCPKG_HOST_TRIPLET STREQUAL "")
-    set(ISPC_TOOL_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_HOST_TRIPLET}/tools/ispc")
-else()
-    # When not cross-compiling, the tools are in the regular installed directory
-    set(ISPC_TOOL_PATH "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/ispc")
-endif()
-
-if(WIN32)
-    set(ISPC_EXECUTABLE "${ISPC_TOOL_PATH}/ispc.exe")
-else()
-    set(ISPC_EXECUTABLE "${ISPC_TOOL_PATH}/ispc")
-endif()
-
 if(NOT EXISTS "${ISPC_EXECUTABLE}")
     message(FATAL_ERROR "ISPC executable not found at ${ISPC_EXECUTABLE}")
 endif()
@@ -62,29 +47,48 @@ foreach(ispc_file ${ISPC_SOURCES})
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64|aarch64|ARM64")
             set(ISPC_ARCH "aarch64")
-            set(ISPC_TARGETS "neon-i32x4")
+            set(ISPC_TARGETS "neon")
         else()
             set(ISPC_ARCH "x86-64")
             set(ISPC_TARGETS "sse2,sse4,avx,avx2")
         endif()
     else()
-        set(ISPC_ARCH "x86")
-        set(ISPC_TARGETS "sse2,sse4,avx,avx2")
+        if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "arm|armhf")
+            set(ISPC_ARCH "arm")
+            set(ISPC_TARGETS "neon")
+        else()
+            set(ISPC_ARCH "x86")
+            set(ISPC_TARGETS "sse2,sse4,avx,avx2")
+        endif()
+    endif()
+
+    # Determine OS
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(ISPC_OS "linux")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+        set(ISPC_OS "ios")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        set(ISPC_OS "macos")
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        set(ISPC_OS "windows")
     endif()
 
     # ISPC compilation command
-    set(ISPC_COMPILE_ARGS "-O2" "--arch=${ISPC_ARCH}" "--target=${ISPC_TARGETS}" "--opt=fast-math")
+    set(ISPC_COMPILE_ARGS "-O2" "--arch=${ISPC_ARCH}" "--target=${ISPC_TARGETS}" "--target-os=${ISPC_OS}" "--opt=fast-math")
 
     if(NOT WIN32)
         list(APPEND ISPC_COMPILE_ARGS "--pic")
     endif()
 
-    # Generate object files for each target
+    # Generate object files for each target (ispc only does this if you have more than one target)
     set(ISPC_TARGET_OBJS "")
     string(REPLACE "," ";" ISPC_TARGETS_LIST "${ISPC_TARGETS}")
-    foreach(target ${ISPC_TARGETS_LIST})
-        list(APPEND ISPC_TARGET_OBJS "${ISPC_OUTPUT_DIR}/${fname}_ispc_${target}${ISPC_OBJ_EXT}")
-    endforeach()
+    list(LENGTH ISPC_TARGETS_LIST ISPC_TARGETS_LIST_LEN)
+    if(ISPC_TARGETS_LIST_LEN GREATER 1)
+        foreach(target ${ISPC_TARGETS_LIST})
+            list(APPEND ISPC_TARGET_OBJS "${ISPC_OUTPUT_DIR}/${fname}_ispc_${target}${ISPC_OBJ_EXT}")
+        endforeach()
+    endif()
 
     add_custom_command(
         OUTPUT ${ISPC_OBJ_FILE} ${ISPC_TARGET_OBJS} ${ISPC_HEADER_FILE}
