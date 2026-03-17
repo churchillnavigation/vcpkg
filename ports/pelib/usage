@@ -1,0 +1,4 @@
+pelib provides CMake targets:
+
+  find_package(pelib CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE pelib::pelib)
