@@ -1,0 +1,139 @@
+--- a/CMakeLists.txt	2026-03-17 04:26:29.446197206 +0000
++++ b/CMakeLists.txt	2026-03-17 04:27:01.079589976 +0000
+@@ -1,61 +1,78 @@
+-cmake_minimum_required(VERSION 2.8)
++cmake_minimum_required(VERSION 3.14)
+ project(7zpp)
+-include(CTest)
+ 
+-file(GLOB 7ZPP_SOURCES  ${PROJECT_SOURCE_DIR}/7zpp/*.cpp )
+-add_library(7zpp ${7ZPP_SOURCES})
+-target_include_directories(7zpp PRIVATE  ${PROJECT_SOURCE_DIR}   ${PROJECT_SOURCE_DIR}/7zpp ${PROJECT_SOURCE_DIR}/7z/C  ${PROJECT_SOURCE_DIR}/7z/CPP)
+-
+-set(Boost_USE_STATIC_LIBS ON) 
+-set(Boost_USE_MULTITHREADED ON)  
+-find_package(Boost COMPONENTS filesystem ) 
+-# Setup testing
+-IF( NOT CMAKE_BUILD_TYPE )
+-   SET( CMAKE_BUILD_TYPE Debug)
+-ENDIF()
+-if(Boost_FOUND)
+-    message("Building and running tests")
+-    enable_testing()
+-
+-
+-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/src/ ${CMAKE_SOURCE_DIR}/googletest/include ${CMAKE_SOURCE_DIR}/googletest/googletest ${CMAKE_SOURCE_DIR}/googletest/googletest/include)
+-    #find_package(GTest REQUIRED)
+-
+-    add_executable(TestApp  ${PROJECT_SOURCE_DIR}/7zpp-TestApp/7zpp-TestApp.cpp)
+-
+-    target_include_directories(TestApp PRIVATE 
+-    ${PROJECT_SOURCE_DIR}/7zpp-TestApp/ 
+-    ${PROJECT_SOURCE_DIR} 
+-    ${PROJECT_SOURCE_DIR}/7zpp 
+-    ${PROJECT_SOURCE_DIR}/7z/C  
+-    ${PROJECT_SOURCE_DIR}/7z/CPP
+-    ${Boost_INCLUDE_DIRS} 
+-    )
++# Find dependencies from vcpkg
++find_package(7zip CONFIG REQUIRED)
+ 
++file(GLOB 7ZPP_SOURCES ${PROJECT_SOURCE_DIR}/7zpp/*.cpp)
++add_library(7zpp ${7ZPP_SOURCES})
+ 
+-    add_dependencies(TestApp 7zpp)
+-    set(GTEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/googletest/googletest/src/gtest-all.cc)
+-    add_library(gtest STATIC ${GTEST_SRC}) 
++target_include_directories(7zpp
++    PUBLIC
++        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
++        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/7zpp>
++        $<INSTALL_INTERFACE:include>
++)
++
++target_link_libraries(7zpp PUBLIC 7zip::7zip)
++
++# Optional tests feature
++option(BUILD_TESTS "Build tests" OFF)
++
++if(BUILD_TESTS)
++    find_package(Boost REQUIRED COMPONENTS filesystem)
++    find_package(GTest CONFIG REQUIRED)
+ 
+-    target_link_libraries(TestApp 7zpp gtest ${Boost_LIBRARIES})
++    enable_testing()
+ 
++    add_executable(TestApp ${PROJECT_SOURCE_DIR}/7zpp-TestApp/7zpp-TestApp.cpp)
+ 
+-    add_test(
+-        NAME runUnitTests
+-        COMMAND TestApp --gtest_output=xml:tests.xml
++    target_include_directories(TestApp PRIVATE
++        ${PROJECT_SOURCE_DIR}/7zpp-TestApp/
++        ${PROJECT_SOURCE_DIR}
++        ${PROJECT_SOURCE_DIR}/7zpp
++        ${Boost_INCLUDE_DIRS}
+     )
+ 
++    target_link_libraries(TestApp PRIVATE 7zpp GTest::gtest GTest::gtest_main Boost::filesystem)
+ 
+-    file(COPY ${PROJECT_SOURCE_DIR}/7zpp-TestApp/TestFiles DESTINATION  ${CMAKE_SOURCE_DIR}/build)
++    add_test(NAME runUnitTests COMMAND TestApp --gtest_output=xml:tests.xml)
+ 
+-    set(UNIT_TEST TestApp)
+-else()
+-    message("Not running tests:Make sure you have boost installed.")
++    file(COPY ${PROJECT_SOURCE_DIR}/7zpp-TestApp/TestFiles DESTINATION ${CMAKE_BINARY_DIR})
+ endif()
+ 
+-#The following is needed to run tests properly
+-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build)
+-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY $${CMAKE_SOURCE_DIR}/build)
+-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build)
+-set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
+-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
++# Installation
++include(GNUInstallDirs)
++include(CMakePackageConfigHelpers)
++
++install(TARGETS 7zpp
++    EXPORT 7zpp-targets
++    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++)
++
++install(DIRECTORY ${PROJECT_SOURCE_DIR}/7zpp/
++    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/7zpp
++    FILES_MATCHING PATTERN "*.h"
++)
++
++install(FILES ${PROJECT_SOURCE_DIR}/Include/7zpp.h
++    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
++)
++
++install(EXPORT 7zpp-targets
++    FILE 7zpp-targets.cmake
++    NAMESPACE 7zpp::
++    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/7zpp
++)
++
++configure_package_config_file(
++    "${CMAKE_CURRENT_SOURCE_DIR}/7zpp-config.cmake.in"
++    "${CMAKE_CURRENT_BINARY_DIR}/7zpp-config.cmake"
++    INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/7zpp
++)
++
++install(FILES "${CMAKE_CURRENT_BINARY_DIR}/7zpp-config.cmake"
++    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/7zpp
++)
+--- a/7zpp-config.cmake.in	2026-03-17 04:21:56.038432155 +0000
++++ b/7zpp-config.cmake.in	2026-03-17 04:27:06.713584444 +0000
+@@ -0,0 +1,7 @@
++@PACKAGE_INIT@
++
++find_dependency(7zip CONFIG)
++
++include("${CMAKE_CURRENT_LIST_DIR}/7zpp-targets.cmake")
++
++check_required_components(7zpp)

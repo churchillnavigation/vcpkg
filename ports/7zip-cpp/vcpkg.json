@@ -1,0 +1,28 @@
+{
+  "name": "7zip-cpp",
+  "version-date": "2024-08-12",
+  "description": "A C++ wrapper for accessing the 7-zip COM-like API in 7z.dll and 7za.dll",
+  "homepage": "https://github.com/getnamo/7zip-cpp",
+  "license": null,
+  "supports": "windows",
+  "dependencies": [
+    "7zip",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ],
+  "features": {
+    "tests": {
+      "description": "Build tests",
+      "dependencies": [
+        "boost-filesystem",
+        "gtest"
+      ]
+    }
+  }
+}

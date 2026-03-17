@@ -1,0 +1,4 @@
+7zip-cpp provides CMake targets:
+
+  find_package(7zpp CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE 7zpp::7zpp)
