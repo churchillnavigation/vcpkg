@@ -1,0 +1,48 @@
+--- a/7zpp/MemExtractCallback.h	2026-03-17 15:59:38.245853505 +0000
++++ b/7zpp/MemExtractCallback.h	2026-03-17 15:59:46.824973306 +0000
+@@ -5,7 +5,6 @@
+ 
+ #include <7zip/Archive/IArchive.h>
+ #include <7zip/IPassword.h>
+-#include <7zip/UI/Common/UpdateCallback.h>
+ 
+ #include "ProgressCallback.h"
+ 
+--- a/7zpp/ArchiveExtractCallback.h	2026-03-17 15:59:38.245243938 +0000
++++ b/7zpp/ArchiveExtractCallback.h	2026-03-17 15:59:47.342120450 +0000
+@@ -5,7 +5,6 @@
+ 
+ #include <7zip/Archive/IArchive.h>
+ #include <7zip/IPassword.h>
+-#include <7zip/UI/Common/UpdateCallback.h>
+ 
+ #include "ProgressCallback.h"
+ 
+--- a/7zpp/Enum.h	2026-03-17 15:59:38.245474758 +0000
++++ b/7zpp/Enum.h	2026-03-17 15:59:47.870352522 +0000
+@@ -70,7 +70,7 @@
+ 			const StringValue* it = DerivedDef::Strings;
+ 			for (; it->string != NULL; ++it )
+ 			{
+-				if ( string.Compare( it->string ) == 0 )
++				if ( string.compare( it->string ) == 0 )
+ 				{
+ 					return it->value;
+ 				}
+--- a/7zpp/SevenZipCompressor.cpp	2026-03-17 15:59:38.246342436 +0000
++++ b/7zpp/SevenZipCompressor.cpp	2026-03-17 16:00:10.625684740 +0000
+@@ -93,7 +93,13 @@
+ 	//Set full outputFilePath including ending
+ 	m_archivePath += UsefulFunctions::EndingFromCompressionFormat(m_compressionFormat);
+ 
+-	CComPtr< OutStreamWrapper > outFile = new OutStreamWrapper(OpenArchiveStream());
++	CComPtr<IOutStream> outStream = OpenArchiveStream();
++	if (!outStream)
++	{
++		// failed to open archive file
++		return false;
++	}
++	CComPtr< OutStreamWrapper > outFile = new OutStreamWrapper(outStream);
+ 	CComPtr< ArchiveUpdateCallback > updateCallback = new ArchiveUpdateCallback(m_fileList, m_archivePath, m_password, callback);
+ 
+ 	HRESULT hr = archiver->UpdateItems(outFile, (UInt32)m_fileList.size(), updateCallback);

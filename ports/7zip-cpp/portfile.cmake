@@ -8,6 +8,7 @@ vcpkg_from_github(
     HEAD_REF main
     PATCHES
         use-vcpkg-deps.patch
+        fix-compilation.patch
 )
 
 vcpkg_check_features(

@@ -1,0 +1,14 @@
+--- a/source/PeLibInc.h	2026-03-17 15:59:38.772048681 +0000
++++ b/source/PeLibInc.h	2026-03-17 16:00:20.601061237 +0000
+@@ -13,11 +13,6 @@
+ #ifndef STD_H
+ #define STD_H
+ 
+-#ifdef _MSC_VER
+-	#ifndef for
+-		#define for if (0) {} else for
+-	#endif
+-#endif
+ 
+ #include <algorithm>
+ #include <climits>
