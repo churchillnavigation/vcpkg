@@ -1,0 +1,4 @@
+InertialSenseSDK provides CMake targets:
+
+  find_package(InertialSenseSDK CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE InertialSenseSDK::InertialSenseSDK)
