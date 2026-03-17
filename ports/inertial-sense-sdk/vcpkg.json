@@ -1,0 +1,29 @@
+{
+  "name": "inertial-sense-sdk",
+  "version-date": "2025-03-13",
+  "description": "InertialSense C/C++ Software Development Kit",
+  "homepage": "https://github.com/inertialsense/inertial-sense-sdk",
+  "license": "MIT",
+  "supports": "!(uwp | xbox)",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ],
+  "features": {
+    "examples": {
+      "description": "Build example projects"
+    },
+    "tests": {
+      "description": "Build tests",
+      "dependencies": [
+        "gtest"
+      ]
+    }
+  }
+}

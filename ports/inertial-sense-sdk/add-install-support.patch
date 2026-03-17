@@ -1,0 +1,183 @@
+--- a/CMakeLists.txt	2026-03-17 04:29:28.512844315 +0000
++++ b/CMakeLists.txt	2026-03-17 04:30:20.153386427 +0000
+@@ -2,6 +2,10 @@
+ 
+ project(InertialSenseSDK)
+ 
++# Options for building examples and tests
++option(BUILD_EXAMPLES "Build example projects" OFF)
++option(BUILD_TESTS "Build tests" OFF)
++
+ # Define LINUX variable for use in this file
+ if(UNIX AND NOT APPLE)
+ 	set(LINUX TRUE)
+@@ -97,14 +101,15 @@
+ 
+ # Include paths
+ target_include_directories(${PROJECT_NAME} PUBLIC
+-        src
+-        src/util
+-        src/protocol
+-        src/libusb
+-        src/libusb/libusb
+-        src/yaml-cpp
+-        tests/runtime
+-        external
++        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
++        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/util>
++        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/protocol>
++        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libusb>
++        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libusb/libusb>
++        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/yaml-cpp>
++        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tests/runtime>
++        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external>
++        $<INSTALL_INTERFACE:include/InertialSenseSDK>
+ )
+ 
+ # Build using C11 and CXX17 for all platforms
+@@ -133,16 +138,19 @@
+         )
+     endif()
+ 
+-	add_custom_command(
+-			OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
+-			COMMAND cmd /C scripts\\lib\\update_version_files.bat -p IS_SDK_ "${CMAKE_CURRENT_SOURCE_DIR}/src/version/"
+-			DEPENDS scripts/lib/version_tools.py
+-			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+-	)
+-	add_custom_target(gen_files
+-			DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
+-	)
+-	add_dependencies(${PROJECT_NAME} gen_files)
++	# Generate version file if script is available
++	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lib/update_version_files.bat")
++		add_custom_command(
++				OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
++				COMMAND cmd /C scripts\\lib\\update_version_files.bat -p IS_SDK_ "${CMAKE_CURRENT_SOURCE_DIR}/src/version/"
++				DEPENDS scripts/lib/version_tools.py
++				WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
++		)
++		add_custom_target(gen_files
++				DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
++		)
++		add_dependencies(${PROJECT_NAME} gen_files)
++	endif()
+ 
+     # We need to ensure windows static libs are found
+     target_link_libraries(${PROJECT_NAME} Ws2_32.lib Iphlpapi.lib)
+@@ -154,16 +162,19 @@
+ 			${UDEV_LIB_INCLUDE}
+     )
+ 
+-	add_custom_command(
+-			OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
+-			COMMAND bash -c "scripts/lib/update_version_files.sh -p IS_SDK_ ${CMAKE_CURRENT_SOURCE_DIR}/src/version/"
+-			DEPENDS scripts/lib/version_tools.py
+-			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+-	)
+-	add_custom_target(gen_files
+-			DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
+-	)
+-	add_dependencies(${PROJECT_NAME} gen_files)
++	# Generate version file if script is available
++	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lib/update_version_files.sh")
++		add_custom_command(
++				OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
++				COMMAND bash -c "scripts/lib/update_version_files.sh -p IS_SDK_ ${CMAKE_CURRENT_SOURCE_DIR}/src/version/"
++				DEPENDS scripts/lib/version_tools.py
++				WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
++		)
++		add_custom_target(gen_files
++				DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
++		)
++		add_dependencies(${PROJECT_NAME} gen_files)
++	endif()
+     set_source_files_properties(
+         src/libusb/libusb/core.c
+         PROPERTIES COMPILE_FLAGS "-Wno-unused-but-set-variable"
+@@ -186,16 +197,19 @@
+ 			${UDEV_LIB_INCLUDE}
+     )
+ 
+-	add_custom_command(
+-			OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
+-			COMMAND bash -c "scripts/lib/update_version_files.sh -p IS_SDK_ ${CMAKE_CURRENT_SOURCE_DIR}/src/version/"
+-			DEPENDS scripts/lib/version_tools.py
+-			WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+-	)
+-	add_custom_target(gen_files
+-			DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
+-	)
+-	add_dependencies(${PROJECT_NAME} gen_files)
++	# Generate version file if script is available
++	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/lib/update_version_files.sh")
++		add_custom_command(
++				OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
++				COMMAND bash -c "scripts/lib/update_version_files.sh -p IS_SDK_ ${CMAKE_CURRENT_SOURCE_DIR}/src/version/"
++				DEPENDS scripts/lib/version_tools.py
++				WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
++		)
++		add_custom_target(gen_files
++				DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/version/repositoryInfo.h"
++		)
++		add_dependencies(${PROJECT_NAME} gen_files)
++	endif()
+     set_source_files_properties(
+         src/libusb/libusb/core.c
+         PROPERTIES COMPILE_FLAGS "-Wno-unused-but-set-variable"
+@@ -211,3 +225,47 @@
+ 	# Link in Linux specific packages
+     target_link_libraries(${PROJECT_NAME} ${UDEV_LIBRARIES} m)
+ endif ()
++
++# Installation
++include(GNUInstallDirs)
++include(CMakePackageConfigHelpers)
++
++install(TARGETS ${PROJECT_NAME}
++    EXPORT InertialSenseSDK-targets
++    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++)
++
++install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/src/
++    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/InertialSenseSDK
++    FILES_MATCHING 
++    PATTERN "*.h"
++    PATTERN "libusb" EXCLUDE
++)
++
++install(EXPORT InertialSenseSDK-targets
++    FILE InertialSenseSDK-targets.cmake
++    NAMESPACE InertialSenseSDK::
++    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/InertialSenseSDK
++)
++
++configure_package_config_file(
++    "${CMAKE_CURRENT_SOURCE_DIR}/InertialSenseSDK-config.cmake.in"
++    "${CMAKE_CURRENT_BINARY_DIR}/InertialSenseSDK-config.cmake"
++    INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/InertialSenseSDK
++)
++
++install(FILES "${CMAKE_CURRENT_BINARY_DIR}/InertialSenseSDK-config.cmake"
++    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/InertialSenseSDK
++)
++
++# Build examples if enabled
++if(BUILD_EXAMPLES)
++    add_subdirectory(ExampleProjects)
++endif()
++
++# Build tests if enabled
++if(BUILD_TESTS)
++    add_subdirectory(tests)
++endif()
+--- a/InertialSenseSDK-config.cmake.in	2026-03-17 04:21:56.038432155 +0000
++++ b/InertialSenseSDK-config.cmake.in	2026-03-17 04:30:25.511380072 +0000
+@@ -0,0 +1,5 @@
++@PACKAGE_INIT@
++
++include("${CMAKE_CURRENT_LIST_DIR}/InertialSenseSDK-targets.cmake")
++
++check_required_components(InertialSenseSDK)
