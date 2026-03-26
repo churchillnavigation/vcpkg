@@ -1,18 +1,18 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 1..1 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.0)
- project(livox_sdk)
-
+diff -Naur livox-sdk-original/CMakeLists.txt Livox-SDK-2.3.1/CMakeLists.txt
+--- livox-sdk-original/CMakeLists.txt	2026-03-26 04:02:20.439407318 +0000
++++ Livox-SDK-2.3.1/CMakeLists.txt	2026-03-26 04:02:33.387245014 +0000
+@@ -4,6 +4,8 @@
+ 
  set(CMAKE_CXX_STANDARD 11)
-+
+ 
 +option(BUILD_SAMPLE "Build samples" ON)
-
++
  message(STATUS "main project dir: " ${PROJECT_SOURCE_DIR})
-
-@@ -17,12 +19,16 @@ endif(UNIX)
-
+ 
+ if (CMAKE_CROSSCOMPILING)
+@@ -17,11 +19,14 @@
+ endif(UNIX)
+ 
  add_subdirectory(sdk_core sdk_core)
 -add_subdirectory(sample/hub)
 -add_subdirectory(sample/lidar)
@@ -33,22 +33,19 @@ index 1..1 100644
 +  add_subdirectory(sample_cc/trouble_shooting)
 +  add_subdirectory(sample_cc/lidar_utc_sync)
 +endif()
-+
-
-diff --git a/sdk_core/CMakeLists.txt b/sdk_core/CMakeLists.txt
-index 1..1 100644
---- a/sdk_core/CMakeLists.txt
-+++ b/sdk_core/CMakeLists.txt
+diff -Naur livox-sdk-original/sdk_core/CMakeLists.txt Livox-SDK-2.3.1/sdk_core/CMakeLists.txt
+--- livox-sdk-original/sdk_core/CMakeLists.txt	2026-03-26 04:02:20.442072860 +0000
++++ Livox-SDK-2.3.1/sdk_core/CMakeLists.txt	2026-03-26 04:03:44.821840417 +0000
 @@ -1,5 +1,7 @@
  cmake_minimum_required(VERSION 3.0)
-
+ 
 +include(GNUInstallDirs)
 +
  set(SDK_LIBRARY ${PROJECT_NAME}_static)
  add_library(${SDK_LIBRARY} STATIC "")
-
-@@ -11,11 +13,15 @@ set(LIVOX_SDK_VERSION_STRING "${LIVOX_SDK_MAJOR_VERSION}.${LIVOX_SDK_MINOR_VERS
-
+ 
+@@ -11,12 +13,16 @@
+ 
  target_include_directories(${SDK_LIBRARY}
          PUBLIC
 -        include
@@ -66,12 +63,26 @@ index 1..1 100644
          PRIVATE
 -        src)
 +        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
-
+ 
  set_target_properties(${SDK_LIBRARY} PROPERTIES PUBLIC_HEADER "include/livox_def.h;include/livox_sdk.h")
-@@ -85,7 +91,49 @@ target_sources(${SDK_LIBRARY}
+ 
+@@ -27,9 +33,9 @@
+ endif (WIN32)
+ 
+ target_compile_options(${SDK_LIBRARY}
+-        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall -Werror -Wno-c++11-long-long>
+-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unknown-pragmas -Wall -Werror -Wno-c++11-long-long>
+-        PRIVATE $<$<CXX_COMPILER_ID:Clang>:-Wno-unknown-pragmas -Wall -Werror -Wno-c++11-long-long>)
++        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall -Wno-c++11-long-long -Wno-c++20-compat>
++        PRIVATE $<$<CXX_COMPILER_ID:AppleClang>:-Wno-unknown-pragmas -Wall -Wno-c++11-long-long>
++        PRIVATE $<$<CXX_COMPILER_ID:Clang>:-Wno-unknown-pragmas -Wall -Wno-c++11-long-long>)
+ 
+ target_sources(${SDK_LIBRARY}
+         PRIVATE
+@@ -85,7 +91,40 @@
          src/base/wake_up/${PLATFORM}/wake_up_pipe.cpp)
-
-
+ 
+ 
 +# Install third-party headers
 +install(DIRECTORY include/third_party/
 +        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/third_party
@@ -81,7 +92,9 @@ index 1..1 100644
 +        EXPORT livox_sdk-targets
          PUBLIC_HEADER DESTINATION include
          ARCHIVE DESTINATION lib
-         LIBRARY DESTINATION lib)
+-        LIBRARY DESTINATION lib)
+\ No newline at end of file
++        LIBRARY DESTINATION lib)
 +
 +# Export targets
 +install(EXPORT livox_sdk-targets
@@ -93,7 +106,7 @@ index 1..1 100644
 +include(CMakePackageConfigHelpers)
 +
 +configure_package_config_file(
-+    ${CMAKE_CURRENT_LIST_DIR}/livox_sdk-config.cmake.in
++    ${CMAKE_CURRENT_SOURCE_DIR}/livox_sdk-config.cmake.in
 +    ${CMAKE_CURRENT_BINARY_DIR}/livox_sdk-config.cmake
 +    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/livox_sdk
 +)
@@ -109,11 +122,9 @@ index 1..1 100644
 +    ${CMAKE_CURRENT_BINARY_DIR}/livox_sdk-config-version.cmake
 +    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/livox_sdk
 +)
-diff --git a/sdk_core/livox_sdk-config.cmake.in b/sdk_core/livox_sdk-config.cmake.in
-new file mode 100644
-index 0000000..0000000
---- /dev/null
-+++ b/sdk_core/livox_sdk-config.cmake.in
+diff -Naur livox-sdk-original/sdk_core/livox_sdk-config.cmake.in Livox-SDK-2.3.1/sdk_core/livox_sdk-config.cmake.in
+--- livox-sdk-original/sdk_core/livox_sdk-config.cmake.in	1970-01-01 00:00:00.000000000 +0000
++++ Livox-SDK-2.3.1/sdk_core/livox_sdk-config.cmake.in	2026-03-26 04:02:24.791173710 +0000
 @@ -0,0 +1,5 @@
 +@PACKAGE_INIT@
 +
